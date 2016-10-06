@@ -25,6 +25,7 @@ class Stadium(models.Model):
     lat = models.DecimalField(max_digits=9, decimal_places=6)
     lng = models.DecimalField(max_digits=9, decimal_places=6)
     team = models.ForeignKey(Team, related_name='stadiums')
+    start_date = models.DateField(blank=True, null=True)
     end_date = models.DateField(blank=True, null=True)
 
     def __str__(self):
@@ -37,6 +38,8 @@ class Stadium(models.Model):
 
     def is_current_stadium(self, match_date):
         if self.end_date is not None:
+            if self.start_date is not None:
+                return  self.end_date > match_date > self.end_date
             return self.end_date > match_date
 
         return True
