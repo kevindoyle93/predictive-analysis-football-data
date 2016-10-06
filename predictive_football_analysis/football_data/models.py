@@ -1,3 +1,5 @@
+import datetime.date
+
 from django.db import models
 
 from django_countries.fields import CountryField
@@ -17,6 +19,7 @@ class Stadium(models.Model):
     lat = models.DecimalField(max_digits=9, decimal_places=6)
     lng = models.DecimalField(max_digits=9, decimal_places=6)
     team = models.ForeignKey(Team, related_name='stadiums')
+    end_date = models.DateField(blank=True, null=True)
 
     def __str__(self):
         return '{stadium}: {team}'.format(stadium=self.name, team=self.team)
@@ -26,3 +29,8 @@ class Stadium(models.Model):
         opponent_location = (opponent_stadium.lat, opponent_stadium.lng)
         return distance(location, opponent_location)
 
+    def is_current_stadium(self, match_date):
+        if self.end_date is not None:
+            return self.end_date > match_date
+
+        return True
