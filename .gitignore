@@ -4,3 +4,7 @@ pip-selfcheck.json
 /include
 /lib
 db.sqlite3
+/.idea
+predictive_football_analysis/.idea
+production.env
+.env
