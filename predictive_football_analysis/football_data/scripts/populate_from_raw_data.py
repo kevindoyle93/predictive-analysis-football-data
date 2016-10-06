@@ -24,6 +24,9 @@ def import_teams():
     leagues = [
         ('premier_league/', 'Premier League', team_names_map.PREMIER_LEAGUE),
         ('bundesliga/', 'Bundesliga', team_names_map.BUNDESLIGA),
+        ('la_liga/', 'La Liga', team_names_map.LA_LIGA),
+        ('ligue_un/', 'Ligue Un', team_names_map.LIGUE_UN),
+        ('serie_a/', 'Serie A', team_names_map.SERIE_A),
     ]
 
     seasons = [
@@ -47,6 +50,12 @@ def import_teams():
                 next(reader)
 
                 for row in reader:
+                    if row[2] == '':
+                        raise Exception('Missing value for {league} - {season}'.format(
+                            league=league.name,
+                            season=season)
+                        )
+
                     team_name = team_names_map.match_team_by_league(row[2], league_teams)
                     if Team.objects.filter(name=team_name).count() == 0:
                         Team.objects.create(name=team_name, league=league)
