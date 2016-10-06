@@ -4,9 +4,17 @@ from django_countries.fields import CountryField
 from geopy.distance import distance
 
 
-class Team(models.Model):
-    name = models.CharField(max_length=100)
+class League(models.Model):
+    name = models.CharField(max_length=100, unique=True)
     country = CountryField()
+
+    def __str__(self):
+        return self.name
+
+
+class Team(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    league = models.ForeignKey(League, related_name='teams')
 
     def __str__(self):
         return self.name
