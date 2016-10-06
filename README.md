@@ -1,5 +1,4 @@
 # Predictive Analysis of Football Data
----
 ### Overview
 This repo hosts the data and code involved in my final year project for DIT's Computer Science course, titled _Predictive Analysis of Football Data_.
 
