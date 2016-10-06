@@ -20,7 +20,12 @@ def create_leagues():
 def import_teams():
     Team.objects.all().delete()
 
-    file_path = 'football_data/raw_data/football-data-co-uk/premier_league/'
+    file_path = 'football_data/raw_data/football-data-co-uk/'
+    leagues = [
+        ('premier_league/', 'Premier League', team_names_map.PREMIER_LEAGUE),
+        ('bundesliga/', 'Bundesliga', team_names_map.BUNDESLIGA),
+    ]
+
     seasons = [
         '2011-2012.csv',
         '2012-2013.csv',
@@ -29,19 +34,22 @@ def import_teams():
         '2015-2016.csv',
     ]
 
-    league = League.objects.get(name='Premier League')
+    for league_name in leagues:
+        league_path = league_name[0]
+        league = League.objects.get(name=league_name[1])
+        league_teams = league_name[2]
 
-    for season in seasons:
-        with open(file_path + season, 'r') as match_file:
-            reader = csv.reader(match_file)
+        for season in seasons:
+            with open(file_path + league_path + season, 'r') as match_file:
+                reader = csv.reader(match_file)
 
-            # Skip headers line
-            next(reader)
+                # Skip headers line
+                next(reader)
 
-            for row in reader:
-                team_name = team_names_map.match_team_name(row[2])
-                if Team.objects.filter(name=team_name).count() == 0:
-                    Team.objects.create(name=team_name, league=league)
+                for row in reader:
+                    team_name = team_names_map.match_team_by_league(row[2], league_teams)
+                    if Team.objects.filter(name=team_name).count() == 0:
+                        Team.objects.create(name=team_name, league=league)
 
 
 def run():
