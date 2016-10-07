@@ -28,6 +28,7 @@ class Stadium(models.Model):
     lat = models.DecimalField(max_digits=9, decimal_places=6)
     lng = models.DecimalField(max_digits=9, decimal_places=6)
     team = models.ForeignKey(Team, related_name='stadiums')
+    capacity = models.IntegerField()
     start_date = models.DateField(blank=True, null=True)
     end_date = models.DateField(blank=True, null=True)
 
@@ -46,6 +47,9 @@ class Stadium(models.Model):
             return self.end_date > match_date
 
         return True
+
+    def attendance_percentage(self, attendance):
+        return attendance / self.capacity * 100
 
     class Meta:
         ordering = ['team', 'start_date']
