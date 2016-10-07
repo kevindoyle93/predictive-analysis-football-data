@@ -1,6 +1,6 @@
 import csv
 
-from football_data.models import League, Team
+from football_data.models import League, Team, Stadium
 from football_data.raw_data import team_names_map
 
 
@@ -61,6 +61,33 @@ def import_teams():
                         Team.objects.create(name=team_name, league=league)
 
 
+def import_stadiums():
+    file_path = 'football_data/raw_data/jokecamp-footballdata/stadiums-with-GPS-coordinates.csv'
+
+    with open(file_path, 'r') as stadium_file:
+        reader = csv.reader(stadium_file)
+
+        # Skip headers line
+        next(reader)
+
+        for row in reader:
+            try:
+                team_name = team_names_map.match_team_name(row[1])
+            except Exception:
+                continue
+
+            if Team.objects.filter(name=team_name).count() == 1:
+                team = Team.objects.get(name=team_name)
+
+                Stadium.objects.create(
+                    name=row[3],
+                    lat=row[5],
+                    lng=row[6],
+                    team=team,
+                )
+
+
 def run():
     create_leagues()
     import_teams()
+    import_stadiums()
