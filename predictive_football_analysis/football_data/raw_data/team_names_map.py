@@ -155,11 +155,13 @@ SERIE_A = {
 }
 
 
-
 def match_team_name(team):
-    for team_name in PREMIER_LEAGUE:
-        if all((c in team_name.lower()) for c in team.lower()):
-            return team_name
+    for league in [PREMIER_LEAGUE, BUNDESLIGA, LA_LIGA, LIGUE_UN, SERIE_A]:
+        for correct_name, possible_names in league.items():
+            if team == correct_name or team in possible_names:
+                return correct_name
+
+    raise Exception('No match found for team: {team}'.format(team=team))
 
 
 def match_team_by_league(team, league):

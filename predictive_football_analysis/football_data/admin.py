@@ -1,6 +1,20 @@
 from django.contrib import admin
 
-from football_data.models import League, Team
+from football_data.models import League, Team, Stadium
 
-admin.site.register(League)
-admin.site.register(Team)
+
+class LeagueAdmin(admin.ModelAdmin):
+    list_display = ['name', 'country']
+
+
+class TeamAdmin(admin.ModelAdmin):
+    list_display = ['name', 'league']
+    list_filter = ['league']
+
+
+class StadiumAdmin(admin.ModelAdmin):
+    list_display = ['name', 'team']
+
+admin.site.register(League, LeagueAdmin)
+admin.site.register(Team, TeamAdmin)
+admin.site.register(Stadium, StadiumAdmin)

@@ -19,6 +19,9 @@ class Team(models.Model):
     def __str__(self):
         return self.name
 
+    class Meta:
+        ordering = ['league', 'name']
+
 
 class Stadium(models.Model):
     name = models.CharField(max_length=100)
@@ -29,7 +32,7 @@ class Stadium(models.Model):
     end_date = models.DateField(blank=True, null=True)
 
     def __str__(self):
-        return '{stadium}: {team}'.format(stadium=self.name, team=self.team)
+        return self.name
 
     def distance_to(self, opponent_stadium):
         location = (self.lat, self.lng)
@@ -39,7 +42,10 @@ class Stadium(models.Model):
     def is_current_stadium(self, match_date):
         if self.end_date is not None:
             if self.start_date is not None:
-                return  self.end_date > match_date > self.end_date
+                return self.end_date > match_date > self.end_date
             return self.end_date > match_date
 
         return True
+
+    class Meta:
+        ordering = ['team', 'start_date']
