@@ -53,7 +53,7 @@ def import_teams():
                     if row[2] == '':
                         raise Exception('Missing value for {league} - {season}'.format(
                             league=league.name,
-                            season=season)
+                            season=season,)
                         )
 
                     team_name = team_names_map.match_team_by_league(row[2], league_teams)
@@ -84,6 +84,7 @@ def import_stadiums():
                     lat=row[5],
                     lng=row[6],
                     team=team,
+                    capacity=row[4],
                 )
 
 

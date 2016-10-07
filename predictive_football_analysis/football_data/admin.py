@@ -13,7 +13,8 @@ class TeamAdmin(admin.ModelAdmin):
 
 
 class StadiumAdmin(admin.ModelAdmin):
-    list_display = ['name', 'team']
+    list_display = ['name', 'team', 'capacity']
+    list_filter = ['team__league']
 
 admin.site.register(League, LeagueAdmin)
 admin.site.register(Team, TeamAdmin)
