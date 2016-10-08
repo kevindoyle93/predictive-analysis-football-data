@@ -61,3 +61,29 @@ class Player(models.Model):
     date_of_birth = models.DateField()
     height = models.DecimalField(max_digits=5, decimal_places=2)
     weight = models.DecimalField(max_digits=5, decimal_places=2)
+
+
+class Match(models.Model):
+    date = models.DateTimeField()
+    home_team = models.ForeignKey(Team, related_name='home_matches')
+    away_team = models.ForeignKey(Team, related_name='away_matches')
+    full_time_home_goals = models.PositiveSmallIntegerField()
+    full_time_away_goals = models.PositiveSmallIntegerField()
+    half_time_home_goals = models.PositiveSmallIntegerField()
+    half_time_away_goals = models.PositiveSmallIntegerField()
+    full_time_result = models.CharField(
+        max_length=1,
+        choices=[
+            ('H', 'Home win'),
+            ('D', 'Draw'),
+            ('A', 'Away win')
+        ]
+    )
+    half_time_result = models.CharField(
+        max_length=1,
+        choices=[
+            ('H', 'Home win'),
+            ('D', 'Draw'),
+            ('A', 'Away win')
+        ]
+    )
