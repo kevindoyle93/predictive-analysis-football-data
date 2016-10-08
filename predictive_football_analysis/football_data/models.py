@@ -53,3 +53,11 @@ class Stadium(models.Model):
 
     class Meta:
         ordering = ['team', 'start_date']
+
+
+class Player(models.Model):
+    name = models.CharField(max_length=100)
+    api_id = models.IntegerField(help_text="An ID field used by the Kaggle dataset used in this project")
+    date_of_birth = models.DateField()
+    height = models.DecimalField(max_digits=5, decimal_places=2)
+    weight = models.DecimalField(max_digits=5, decimal_places=2)
