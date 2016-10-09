@@ -223,6 +223,7 @@ def read_lineups(row):
             pass
         setattr(match, 'home_player_{n}_pos'.format(n=num + 1), row[home_player_pos_index + num])
         setattr(match, 'away_player_{n}_pos'.format(n=num + 1), row[away_player_pos_index + num])
+        match.save()
 
 
 def run():
