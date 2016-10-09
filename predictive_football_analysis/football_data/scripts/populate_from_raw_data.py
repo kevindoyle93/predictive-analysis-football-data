@@ -177,53 +177,64 @@ def import_matches():
 
 
 def import_lineups():
-    file_path = 'football_data/raw_data/kaggle-data/Match.csv'
+    file_paths = ['football_data/raw_data/kaggle-data/Match_1.csv', 'football_data/raw_data/kaggle-data/Match_2.csv']
+
+    for file_path in file_paths:
+        with open(file_path, 'r') as match_file:
+            reader = csv.reader(match_file)
+
+            # Skip headers line
+            next(reader)
+
+            for row in reader:
+                read_lineups(row)
+
+
+def read_lineups(row):
     home_player_index = 56
     away_player_index = home_player_index + 11
     home_player_pos_index = 34
     away_player_pos_index = home_player_pos_index + 11
+    try:
+        home_team = Team.objects.get(kaggle_api_id=row[8])
+    except Team.DoesNotExist:
+        return
+    away_team = Team.objects.get(kaggle_api_id=row[9])
+    date = datetime.datetime.strptime(row[6], '%d/%m/%Y %H:%M')
 
-    with open(file_path, 'r') as match_file:
-        reader = csv.reader(match_file)
-
-        # Skip headers line
-        next(reader)
-
-        for row in reader:
-            try:
-                home_team = Team.objects.get(kaggle_api_id=row[8])
-            except Team.DoesNotExist:
-                continue
-            away_team = Team.objects.get(kaggle_api_id=row[9])
-            date = datetime.datetime.strptime(row[6], '%d/%m/%Y %H:%M')
-
-            try:
-                match = Match.objects.get(date=date, home_team=home_team, away_team=away_team)
-            except Match.DoesNotExist:
-                raise Exception('{h} v {a} {d} does not exist'.format(
-                    h=home_team,
-                    a=away_team,
-                    d=date,
-                ))
-            for num in range(0, 11):
-                try:
-                    home_player = Player.objects.get(kaggle_api_id=row[home_player_index + num])
-                    setattr(match, 'home_player_{n}'.format(n=num + 1), home_player)
-                except ValueError:
-                    pass
-                try:
-                    away_player = Player.objects.get(kaggle_api_id=row[away_player_index + num])
-                    setattr(match, 'away_player_{n}'.format(n=num + 1), away_player)
-                except ValueError:
-                    pass
-                setattr(match, 'home_player_{n}_pos'.format(n=num + 1), row[home_player_pos_index + num])
-                setattr(match, 'away_player_{n}_pos'.format(n=num + 1), row[away_player_pos_index + num])
+    try:
+        match = Match.objects.get(date=date, home_team=home_team, away_team=away_team)
+    except Match.DoesNotExist:
+        raise Exception('{h} v {a} {d} does not exist'.format(
+            h=home_team,
+            a=away_team,
+            d=date,
+        ))
+    for num in range(0, 11):
+        try:
+            home_player = Player.objects.get(kaggle_api_id=row[home_player_index + num])
+            setattr(match, 'home_player_{n}'.format(n=num + 1), home_player)
+        except ValueError:
+            pass
+        try:
+            away_player = Player.objects.get(kaggle_api_id=row[away_player_index + num])
+            setattr(match, 'away_player_{n}'.format(n=num + 1), away_player)
+        except ValueError:
+            pass
+        setattr(match, 'home_player_{n}_pos'.format(n=num + 1), row[home_player_pos_index + num])
+        setattr(match, 'away_player_{n}_pos'.format(n=num + 1), row[away_player_pos_index + num])
 
 
 def run():
-    # create_leagues()
-    # import_teams()
-    # import_stadiums()
-    # import_players()
-    # import_matches()
+    print('Creating leagues...')
+    create_leagues()
+    print('Importing teams...')
+    import_teams()
+    print('Importing stadiums...')
+    import_stadiums()
+    print('Importing players...')
+    import_players()
+    print('Importing matches...')
+    import_matches()
+    print('Importing lineups...')
     import_lineups()
