@@ -11,3 +11,18 @@ class LeagueSerializer(serializers.ModelSerializer):
 class TeamSerializer(serializers.ModelSerializer):
     class Meta:
         model = Team
+
+
+class StadiumSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Stadium
+
+
+class PlayerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Player
+
+
+class MatchSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Match
