@@ -151,6 +151,8 @@ def import_matches():
         league_path = league_name[0]
         league_teams = league_name[1]
 
+        stats_index = 11 if league_name == leagues[0] else 10
+
         for season in seasons:
             with open(file_path + league_path + season, 'r') as match_file:
                 reader = csv.reader(match_file)
@@ -171,9 +173,22 @@ def import_matches():
                             half_time_home_goals=row[7],
                             half_time_away_goals=row[8],
                             half_time_result=row[9],
+                            home_total_shots=row[stats_index],
+                            away_total_shots=row[stats_index + 1],
+                            home_shots_on_target=row[stats_index + 2],
+                            away_shots_on_target=row[stats_index + 3],
+                            home_fouls_committed=row[stats_index + 4],
+                            away_fouls_committed=row[stats_index + 5],
+                            home_corners=row[stats_index + 6],
+                            away_corners=row[stats_index + 7],
+                            home_yellow_cards=row[stats_index + 8],
+                            away_yellow_cards=row[stats_index + 9],
+                            home_red_cards=row[stats_index + 10],
+                            away_red_cards=row[stats_index + 11],
                         )
                     except Exception:
                         print('{h} v {a} {d}'.format(h=home_team.name, a=away_team.name, d=row[1]))
+                        return
 
 
 def import_lineups():

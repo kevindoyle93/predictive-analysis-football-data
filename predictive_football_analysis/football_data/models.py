@@ -92,6 +92,24 @@ class Match(models.Model):
         ]
     )
 
+    # Stats
+    home_possession = models.DecimalField(max_digits=3, decimal_places=1, null=True, blank=True)
+    away_possession = models.DecimalField(max_digits=3, decimal_places=1, null=True, blank=True)
+    home_total_shots = models.PositiveSmallIntegerField()
+    away_total_shots = models.PositiveSmallIntegerField()
+    home_shots_on_target = models.PositiveSmallIntegerField()
+    away_shots_on_target = models.PositiveSmallIntegerField()
+    home_corners = models.PositiveSmallIntegerField()
+    away_corners = models.PositiveSmallIntegerField()
+    home_fouls_committed = models.PositiveSmallIntegerField()
+    away_fouls_committed = models.PositiveSmallIntegerField()
+    home_offsides = models.PositiveSmallIntegerField(null=True, blank=True)
+    away_offsides = models.PositiveSmallIntegerField(null=True, blank=True)
+    home_yellow_cards = models.PositiveSmallIntegerField()
+    away_yellow_cards = models.PositiveSmallIntegerField()
+    home_red_cards = models.PositiveSmallIntegerField()
+    away_red_cards = models.PositiveSmallIntegerField()
+
     # Home Lineup
     home_player_1 = models.ForeignKey(Player, related_name='home_matches_p1', null=True, blank=True, editable=False)
     home_player_2 = models.ForeignKey(Player, related_name='home_matches_p2', null=True, blank=True, editable=False)
