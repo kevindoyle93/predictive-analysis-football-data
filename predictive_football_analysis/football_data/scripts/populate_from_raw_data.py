@@ -229,16 +229,27 @@ def read_lineups(row):
         try:
             home_player = Player.objects.get(kaggle_api_id=row[home_player_index + num])
             setattr(match, 'home_player_{n}'.format(n=num + 1), home_player)
+            home_player.has_played_match = True
+            home_player.save()
         except ValueError:
             pass
         try:
             away_player = Player.objects.get(kaggle_api_id=row[away_player_index + num])
             setattr(match, 'away_player_{n}'.format(n=num + 1), away_player)
+            away_player.has_played_match = True
+            away_player.save()
         except ValueError:
             pass
         setattr(match, 'home_player_{n}_pos'.format(n=num + 1), row[home_player_pos_index + num])
         setattr(match, 'away_player_{n}_pos'.format(n=num + 1), row[away_player_pos_index + num])
         match.save()
+
+
+def remove_excess_players():
+    """
+    The Player.csv dataset contains players from before my scope and from leagues outside my scope that must be removed
+    """
+    Player.objects.filter(has_played_match=False).all().delete()
 
 
 def run():
@@ -254,3 +265,5 @@ def run():
     import_matches()
     print('Importing lineups...')
     import_lineups()
+    print('Removing excess players...')
+    remove_excess_players()
