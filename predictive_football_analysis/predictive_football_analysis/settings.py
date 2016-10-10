@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django_extensions',
     'django_countries',
+    'rest_framework'
 
     'football_data',
 ]
