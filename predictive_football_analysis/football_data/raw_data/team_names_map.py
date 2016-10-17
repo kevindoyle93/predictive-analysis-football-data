@@ -14,7 +14,7 @@ PREMIER_LEAGUE = {
     'Leicester City': ['Leicester'],
     'Liverpool': [],
     'Manchester City': ['Man City'],
-    'Manchester United': ['Man United'],
+    'Manchester United': ['Man United', 'Man Utd'],
     'Newcastle United': ['Newcastle'],
     'Norwich City': ['Norwich'],
     'Queens Park Rangers': ['QPR'],
@@ -26,7 +26,7 @@ PREMIER_LEAGUE = {
     'Tottenham Hotspur': ['Tottenham'],
     'Watford': [],
     'West Ham United': ['West Ham'],
-    'West Bromwich Albion': ['West Brom', 'West Bromich Albion'],
+    'West Bromwich Albion': ['West Brom', 'West Bromich Albion', 'W Brom'],
     'Wigan Athletic': ['Wigan'],
     'Wolverhampton Wanderers': ['Wolves'],
 }
