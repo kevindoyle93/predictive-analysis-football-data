@@ -22,6 +22,7 @@ def api_root(request, format=None):
 class LeagueList(generics.ListAPIView):
     queryset = League.objects.all()
     serializer_class = LeagueSerializer
+    filter_fields = ('name', )
 
 
 class LeagueDetail(generics.RetrieveAPIView):
@@ -68,9 +69,24 @@ class PlayerDetail(generics.RetrieveAPIView):
     serializer_class = PlayerSerializer
 
 
+class MatchFilter(django_filters.FilterSet):
+    home_team = django_filters.CharFilter(name='home_team__name')
+    away_team = django_filters.CharFilter(name='away_team__name')
+
+    class Meta:
+        model = Match
+        fields = [
+            'home_team',
+            'away_team',
+            'full_time_result',
+            'half_time_result',
+        ]
+
+
 class MatchList(generics.ListAPIView):
     queryset = Match.objects.all()
     serializer_class = MatchSerializer
+    filter_class = MatchFilter
 
 
 class MatchDetail(generics.RetrieveAPIView):
