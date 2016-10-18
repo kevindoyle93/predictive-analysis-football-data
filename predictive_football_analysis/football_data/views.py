@@ -73,6 +73,9 @@ class MatchFilter(django_filters.FilterSet):
     home_team = django_filters.CharFilter(name='home_team__name')
     away_team = django_filters.CharFilter(name='away_team__name')
 
+    min_home_possession = django_filters.NumberFilter(name='home_possession', lookup_expr='gte')
+    max_home_possession = django_filters.NumberFilter(name='home_possession', lookup_expr='lte')
+
     class Meta:
         model = Match
         fields = [
