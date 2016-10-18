@@ -2,6 +2,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework import generics
+import django_filters
 
 from football_data.serializers import *
 from football_data.models import *
@@ -28,9 +29,18 @@ class LeagueDetail(generics.RetrieveAPIView):
     serializer_class = LeagueSerializer
 
 
+class TeamFilter(django_filters.FilterSet):
+    league = django_filters.CharFilter(name='league__name')
+
+    class Meta:
+        model = Team
+        fields = ['name', 'league']
+
+
 class TeamList(generics.ListAPIView):
     queryset = Team.objects.all()
     serializer_class = TeamSerializer
+    filter_class = TeamFilter
 
 
 class TeamDetail(generics.RetrieveAPIView):
