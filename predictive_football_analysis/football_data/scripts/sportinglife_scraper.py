@@ -12,31 +12,35 @@ YEARS = [
     # '2011',
     # '2012',
     # '2013',
-    # '2014',
+    '2014',
     # '2015',
     # '2016',
 ]
 
 MONTHS = {
-    # 'january',
-    # 'february',
-    # 'march',
-    # 'april',
-    'may': 5,
-    # 'august',
-    # 'september',
-    # 'october',
-    # 'november',
-    # 'december',
+    # 'january': 1,
+    # 'february': 2,
+    # 'march': 3,
+    # 'april': 4,
+    # 'may': 5,
+    'august': 8,
+    'september': 9,
+    'october': 10,
+    'november': 11,
+    'december': 12,
 }
 
 LEAGUES = [
     'premier-league',
+    # 'bundesliga',
+    # 'la-liga',
+    # 'ligue-1',
+    # 'serie-a',
 ]
 
 
 def get_results_url(league, date):
-    return '{base}/football/{league}/results/{date}'.format(base=BASE_URL, league=league, date=date)
+    return '{base}football/{league}/results/{date}'.format(base=BASE_URL, league=league, date=date)
 
 
 def format_date(month, year):
@@ -52,6 +56,10 @@ def fetch_possession_stats():
     for league in LEAGUES:
         for year in YEARS:
             for month, month_index in MONTHS.items():
+                print('-----------------------------------------------')
+                print(month)
+                print('-----------------------------------------------')
+
                 url = get_results_url(league, format_date(month, year))
                 root = get_results_page_root(url)
 
@@ -68,6 +76,8 @@ def fetch_possession_stats():
 
                 match_count = 0
                 for link in match_links:
+                    print('Match {count} of {total}...'.format(count=match_count + 1, total=len(match_links)))
+
                     stats_page = html.fromstring(requests.get(BASE_URL + link).content)
                     stats_lists = stats_page.xpath('//*[@class="s-con"]')
 
@@ -86,6 +96,12 @@ def fetch_possession_stats():
                         if 'Possession' in stat.text_content():
                             away_possession_str = stat.text_content()
 
+                    # Get the kickoff time
+                    kickoff_time = None
+                    for details in stats_page.xpath('//*[@class="ls-match-detsub"]'):
+                        match_info = details.text_content().split(' ')
+                        kickoff_time = match_info[3]
+
                     home_team = team_names_map.match_team_name(
                         team_names[match_count * 2]
                     )
@@ -103,22 +119,23 @@ def fetch_possession_stats():
 
                     home_possession = float(home_possession_str.split('%')[1][1:])
                     away_possession = float(away_possession_str.split('%')[1][1:])
-                    print('{ht} {hp} - {ap} {at}'.format(
-                            ht=home_team,
-                            hp=home_possession,
-                            ap=away_possession,
-                            at=away_team,
-                        )
-                    )
+
+                    kickoff_hour = int(kickoff_time[:2])
+                    kickoff_minutes = int(kickoff_time[3:])
+                    kickoff = match_to_update.date.replace(hour=kickoff_hour, minute=kickoff_minutes)
 
                     match_to_update.home_possession = home_possession
                     match_to_update.away_possession = away_possession
+                    match_to_update.date = kickoff
                     match_to_update.save()
 
                     match_count += 1
 
                     # Wait before continuing, I don't want to overload sportinglife's servers
-                    time.sleep(5)
+                    time.sleep(15)
+
+                # Give it an aul rest between months
+                time.sleep(300)
 
 
 fetch_possession_stats()
