@@ -85,7 +85,7 @@ LA_LIGA = {
     'Sevilla': [],
     'Sporting Gijon': ['Sp Gijon'],
     'Valencia': [],
-    'Valladolid': [],
+    'Valladolid': ['Real Valladolid'],
     'Villarreal': [],
     'Zaragoza': ['Real Zaragoza'],
 }

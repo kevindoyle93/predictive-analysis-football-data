@@ -70,6 +70,8 @@ class PlayerDetail(generics.RetrieveAPIView):
 
 
 class MatchFilter(django_filters.FilterSet):
+    league = django_filters.CharFilter(name='home_team__league__name')
+
     home_team = django_filters.CharFilter(name='home_team__name')
     away_team = django_filters.CharFilter(name='away_team__name')
 
@@ -121,6 +123,7 @@ class MatchFilter(django_filters.FilterSet):
     class Meta:
         model = Match
         fields = [
+            'league',
             'home_team',
             'away_team',
             'full_time_result',
