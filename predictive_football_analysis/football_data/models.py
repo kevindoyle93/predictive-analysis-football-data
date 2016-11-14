@@ -162,6 +162,13 @@ class Match(models.Model):
     away_player_10_pos = models.PositiveSmallIntegerField(blank=True, null=True)
     away_player_11_pos = models.PositiveSmallIntegerField(blank=True, null=True)
 
+    home_win_average_odds = models.FloatField(blank=True, null=True)
+    draw_average_odds = models.FloatField(blank=True, null=True)
+    away_win_average_odds = models.FloatField(blank=True, null=True)
+    home_win_max_odds = models.FloatField(blank=True, null=True)
+    draw_max_odds = models.FloatField(blank=True, null=True)
+    away_win_max_odds = models.FloatField(blank=True, null=True)
+
     def __str__(self):
         return '{h} v {a}'.format(h=self.home_team, a=self.away_team)
 

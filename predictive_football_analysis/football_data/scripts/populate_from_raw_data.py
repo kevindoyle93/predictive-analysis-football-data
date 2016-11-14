@@ -252,6 +252,67 @@ def remove_excess_players():
     Player.objects.filter(has_played_match=False).all().delete()
 
 
+def import_betting_data():
+    file_path = 'football_data/raw_data/football-data-co-uk/'
+    leagues = [
+        ('premier_league/', team_names_map.PREMIER_LEAGUE),
+        ('bundesliga/', team_names_map.BUNDESLIGA),
+        ('la_liga/', team_names_map.LA_LIGA),
+        ('ligue_un/', team_names_map.LIGUE_UN),
+        ('serie_a/', team_names_map.SERIE_A),
+    ]
+
+    seasons = [
+        '2011-2012.csv',
+        '2012-2013.csv',
+        '2013-2014.csv',
+        '2014-2015.csv',
+        '2015-2016.csv',
+    ]
+
+    for league_name in leagues:
+        print(league_name[0])
+        league_path = league_name[0]
+        league_teams = league_name[1]
+
+        for season in seasons:
+            with open(file_path + league_path + season, 'r') as match_file:
+                reader = csv.reader(match_file)
+
+                headers = next(reader)
+                bet_brain_index = headers.index('BbMxH')
+
+                for row in reader:
+                    home_team = Team.objects.get(name=team_names_map.match_team_by_league(row[2], league_teams))
+                    away_team = Team.objects.get(name=team_names_map.match_team_by_league(row[3], league_teams))
+                    date = datetime.datetime.strptime(row[1], '%d/%m/%y')
+
+                    try:
+                        match = Match.objects.get(
+                            date__year=date.year,
+                            date__month=date.month,
+                            date__day=date.day,
+                            home_team=home_team,
+                            away_team=away_team
+                        )
+
+                        match.home_win_max_odds = row[bet_brain_index]
+                        match.home_win_average_odds = row[bet_brain_index + 1]
+                        match.draw_max_odds = row[bet_brain_index + 2]
+                        match.draw_average_odds = row[bet_brain_index + 3]
+                        match.away_win_max_odds = row[bet_brain_index + 4]
+                        match.away_win_average_odds = row[bet_brain_index + 5]
+
+                        match.save()
+
+                    except Match.DoesNotExist:
+                        raise Exception('{h} v {a} {d} does not exist'.format(
+                            h=home_team,
+                            a=away_team,
+                            d=date,
+                        ))
+
+
 def run():
     print('Creating leagues...')
     create_leagues()
@@ -267,3 +328,5 @@ def run():
     import_lineups()
     print('Removing excess players...')
     remove_excess_players()
+    print('Importing betting data...')
+    import_betting_data()

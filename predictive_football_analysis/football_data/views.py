@@ -4,6 +4,10 @@ from rest_framework.reverse import reverse
 from rest_framework import generics
 import django_filters
 
+from django.db.models import Q
+
+import pandas as pd
+
 from football_data.serializers import *
 from football_data.models import *
 
@@ -47,6 +51,19 @@ class TeamList(generics.ListAPIView):
 class TeamDetail(generics.RetrieveAPIView):
     queryset = Team.objects.all()
     serializer_class = TeamSerializer
+
+
+class TeamMatchesList(generics.ListAPIView):
+    def get_queryset(self):
+        team = Team.objects.get(pk=self.kwargs['pk'])
+        matches = Match.objects.filter(Q(home_team=team) | Q(away_team=team))
+        matches = matches.exclude(home_possession__isnull=True)
+        return matches
+
+    def paginate_queryset(self, queryset):
+        return None
+
+    serializer_class = TeamMatchSerializer
 
 
 class StadiumList(generics.ListAPIView):
@@ -181,3 +198,30 @@ class MatchList(generics.ListAPIView):
 class MatchDetail(generics.RetrieveAPIView):
     queryset = Match.objects.all()
     serializer_class = MatchSerializer
+
+
+def export_match_data():
+    matches = Match.objects.filter(home_team__league=League.objects.filter(name='Premier League'))
+
+    column_names = [
+        'Full-time Home Goals',
+        'Full-time Away Goals',
+        'Half-time Home Goals',
+        'Half-time Away Goals',
+        'Home Possession',
+        'Away Possession',
+        'Home Shots',
+        'Away Shots',
+        'Home Shots on Target',
+        'Away Shots on Target',
+        'Home Corners',
+        'Away Corners',
+        'Home Fouls',
+        'Away Fouls',
+        'Home Yellow Cards',
+        'Away Yellow Cards',
+        'Home Red Cards',
+        'Aways Red Cards'
+    ]
+
+
