@@ -9,4 +9,4 @@ predictive_football_analysis/.idea
 production.env
 .env
 .ipynb_checkpoints/
-/notebooks
+notebooks/
