@@ -31,10 +31,12 @@ INSTALLED_APPS = [
     'django_countries',
     'rest_framework',
 
+    'corsheaders',
     'football_data',
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -121,3 +123,5 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 50,
     'DEFAULT_FILTER_BACKENDS': ('rest_framework.filters.DjangoFilterBackend',),
 }
+
+CORS_ORIGIN_ALLOW_ALL = True
