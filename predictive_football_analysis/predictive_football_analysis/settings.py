@@ -32,7 +32,7 @@ INSTALLED_APPS = [
     'rest_framework',
 
     'corsheaders',
-    'football_data',
+    'football_data.apps.FootballDataConfig',
 ]
 
 MIDDLEWARE = [
@@ -116,6 +116,15 @@ USE_TZ = False
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
 
 STATIC_URL = '/static/'
+
+# Caching
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'LOCATION': '127.0.0.1:11211',
+        'TIMEOUT': None,
+    }
+}
 
 # Rest Framework
 REST_FRAMEWORK = {
