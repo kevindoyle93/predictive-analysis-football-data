@@ -3,6 +3,7 @@ pip-selfcheck.json
 /bin
 /include
 /lib
+/share
 db.sqlite3
 /.idea
 predictive_football_analysis/.idea
