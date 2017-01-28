@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from football_data.models import League, Team, Stadium, Player, Match
+from football_data.models import League, Team, Stadium, Player, Match, DecisionTreeModel
 
 
 class LeagueAdmin(admin.ModelAdmin):
@@ -54,3 +54,4 @@ admin.site.register(Team, TeamAdmin)
 admin.site.register(Stadium, StadiumAdmin)
 admin.site.register(Player, PlayerAdmin)
 admin.site.register(Match, MatchAdmin)
+admin.site.register(DecisionTreeModel)

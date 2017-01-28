@@ -2,6 +2,7 @@ from django.db import models
 
 from django_countries.fields import CountryField
 from geopy.distance import distance
+from sklearn import tree
 
 
 class League(models.Model):
@@ -174,3 +175,18 @@ class Match(models.Model):
 
     class Meta:
         verbose_name_plural = 'Matches'
+
+
+class PredictiveModel(models.Model):
+    name = models.CharField(max_length=100)
+    algorithm = models.CharField(max_length=100)
+
+    model = None
+
+    @property
+    def model(self):
+        return self.model
+
+
+class DecisionTreeModel(PredictiveModel):
+    model = tree.DecisionTreeClassifier()
