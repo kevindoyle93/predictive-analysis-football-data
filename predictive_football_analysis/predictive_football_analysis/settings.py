@@ -32,7 +32,7 @@ INSTALLED_APPS = [
     'rest_framework',
 
     'corsheaders',
-    'football_data',
+    'football_data.apps.FootballDataConfig',
 ]
 
 MIDDLEWARE = [
@@ -117,6 +117,15 @@ USE_TZ = False
 
 STATIC_URL = '/static/'
 
+# Caching
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'LOCATION': '127.0.0.1:11211',
+        'TIMEOUT': None,
+    }
+}
+
 # Rest Framework
 REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
@@ -125,10 +134,3 @@ REST_FRAMEWORK = {
 }
 
 CORS_ORIGIN_ALLOW_ALL = True
-
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
-        'LOCATION': '127.0.0.1:11211',
-    }
-}
