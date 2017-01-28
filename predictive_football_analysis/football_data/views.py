@@ -198,30 +198,3 @@ class MatchList(generics.ListAPIView):
 class MatchDetail(generics.RetrieveAPIView):
     queryset = Match.objects.all()
     serializer_class = MatchSerializer
-
-
-def export_match_data():
-    matches = Match.objects.filter(home_team__league=League.objects.filter(name='Premier League'))
-
-    column_names = [
-        'Full-time Home Goals',
-        'Full-time Away Goals',
-        'Half-time Home Goals',
-        'Half-time Away Goals',
-        'Home Possession',
-        'Away Possession',
-        'Home Shots',
-        'Away Shots',
-        'Home Shots on Target',
-        'Away Shots on Target',
-        'Home Corners',
-        'Away Corners',
-        'Home Fouls',
-        'Away Fouls',
-        'Home Yellow Cards',
-        'Away Yellow Cards',
-        'Home Red Cards',
-        'Aways Red Cards'
-    ]
-
-
