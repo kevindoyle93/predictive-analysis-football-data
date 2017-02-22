@@ -27,13 +27,16 @@ index,id,team_api_id,team_long_name,team_short_name
 55,7208,8344,Cardiff,CAR
 155,25736,208931,Carpi,CAP
 128,20449,8530,Catania,CAT
+998,99997,9997,CD Leganes,CDL
 279,46019,9910,Celta Vigo,CEL
 147,21974,9880,Cesena,CES
 43,3475,8455,Chelsea,CHE
 130,20451,8533,Chievo,CHI
 282,47544,7869,Cordoba,COR
+995,99995,9995,Crotone,CRO
 54,7193,9826,Crystal Palace,CRY
 123,19849,8262,Darmstadt,DAR
+996,99996,9996,Deportivo Alaves,ALA
 255,42971,9783,Deportivo La Coruna,COR
 86,11757,9836,Dijon,DIJ
 281,47537,8372,Eibar,EIB
@@ -83,6 +86,7 @@ index,id,team_api_id,team_long_name,team_short_name
 25,3457,10260,Manchester United,MUN
 74,9484,8592,Marseille,MAR
 91,14038,8550,Metz,MET
+900,99999,99999,Middlesbrogh,MBO
 69,9479,9829,Monaco,MON
 80,10241,10249,Montpellier,MON
 71,9481,8481,Nancy,NAN
@@ -101,6 +105,7 @@ index,id,team_api_id,team_long_name,team_short_name
 50,5747,10172,Queens Park Rangers,QPR
 259,42975,8696,Racing Santander,SAN
 278,45265,8370,Rayo Vallecano,RAY
+888,99998,9998,Red Bull Leipzig,RBL
 53,6441,9798,Reading,REA
 263,42979,8603,Real Betis,BET
 256,42972,8633,Real Madrid,REA

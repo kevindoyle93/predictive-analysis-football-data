@@ -9,32 +9,32 @@ from football_data.models import Match, Team
 BASE_URL = 'http://www.sportinglife.com/'
 
 YEARS = [
-    '2011',
-    '2012',
-    '2013',
-    '2014',
-    '2015',
+    # '2011',
+    # '2012',
+    # '2013',
+    # '2014',
+    # '2015',
     '2016',
 ]
 
 MONTHS = {
-    'january': 1,
-    'february': 2,
-    'march': 3,
-    'april': 4,
-    'may': 5,
+    # 'january': 1,
+    # 'february': 2,
+    # 'march': 3,
+    # 'april': 4,
+    # 'may': 5,
     'august': 8,
-    'september': 9,
-    'october': 10,
-    'november': 11,
-    'december': 12,
+    # 'september': 9,
+    # 'october': 10,
+    # 'november': 11,
+    # 'december': 12,
 }
 
 LEAGUES = [
-    'premier-league',
-    'bundesliga',
-    'la-liga',
-    'ligue-1',
+    # 'premier-league',
+    # 'bundesliga',
+    # 'la-liga',
+    # 'ligue-1',
     'serie-a',
 ]
 
@@ -111,6 +111,9 @@ def fetch_possession_stats():
                             team_names[match_count * 2 + 1]
                         )
 
+                        print('Home team: {}'.format(home_team))
+                        print('Away team: {}'.format(away_team))
+
                         match_to_update = Match.objects.get(
                             home_team=Team.objects.get(name=home_team),
                             away_team=Team.objects.get(name=away_team),
@@ -136,6 +139,9 @@ def fetch_possession_stats():
                             team_names[match_count * 2 + 1])
                         )
 
+                    except Match.DoesNotExist:
+                        pass
+
                     finally:
                         match_count += 1
 
@@ -143,7 +149,10 @@ def fetch_possession_stats():
                     time.sleep(15)
 
                 # Give it an aul rest between months
-                time.sleep(180)
+                time.sleep(90)
+
+        # Give a longer aul rest between leagues
+        time.sleep(180)
 
 
 fetch_possession_stats()

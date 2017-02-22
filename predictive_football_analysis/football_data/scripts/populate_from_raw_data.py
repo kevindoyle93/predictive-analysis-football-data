@@ -19,7 +19,7 @@ def create_leagues():
 
 
 def import_teams():
-    Team.objects.all().delete()
+    # Team.objects.all().delete()
 
     kaggle_teams = {}
     # Get team names and API IDs from the Kaggle dataset
@@ -42,11 +42,12 @@ def import_teams():
     ]
 
     seasons = [
-        '2011-2012.csv',
-        '2012-2013.csv',
-        '2013-2014.csv',
-        '2014-2015.csv',
-        '2015-2016.csv',
+        # '2011-2012.csv',
+        # '2012-2013.csv',
+        # '2013-2014.csv',
+        # '2014-2015.csv',
+        # '2015-2016.csv',
+        '2016-2017.csv'
     ]
 
     for league_name in leagues:
@@ -128,7 +129,7 @@ def import_players():
 
 
 def import_matches():
-    Match.objects.all().delete()
+    # Match.objects.all().delete()
     file_path = 'football_data/raw_data/football-data-co-uk/'
     leagues = [
         ('premier_league/', team_names_map.PREMIER_LEAGUE),
@@ -139,11 +140,12 @@ def import_matches():
     ]
 
     seasons = [
-        '2011-2012.csv',
-        '2012-2013.csv',
-        '2013-2014.csv',
-        '2014-2015.csv',
-        '2015-2016.csv',
+        # '2011-2012.csv',
+        # '2012-2013.csv',
+        # '2013-2014.csv',
+        # '2014-2015.csv',
+        # '2015-2016.csv',
+        '2016-2017.csv',
     ]
 
     for league_name in leagues:
@@ -314,19 +316,19 @@ def import_betting_data():
 
 
 def run():
-    print('Creating leagues...')
-    create_leagues()
+    # print('Creating leagues...')
+    # create_leagues()
     print('Importing teams...')
     import_teams()
-    print('Importing stadiums...')
-    import_stadiums()
-    print('Importing players...')
-    import_players()
+    # print('Importing stadiums...')
+    # import_stadiums()
+    # print('Importing players...')
+    # import_players()
     print('Importing matches...')
     import_matches()
-    print('Importing lineups...')
-    import_lineups()
-    print('Removing excess players...')
-    remove_excess_players()
-    print('Importing betting data...')
-    import_betting_data()
+    # print('Importing lineups...')
+    # import_lineups()
+    # print('Removing excess players...')
+    # remove_excess_players()
+    # print('Importing betting data...')
+    # import_betting_data()
