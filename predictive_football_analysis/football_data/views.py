@@ -1,3 +1,5 @@
+from collections import OrderedDict
+
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
@@ -5,6 +7,8 @@ from rest_framework import generics
 import django_filters
 
 from django.db.models import Q
+from django.core.cache import cache
+from django.views.decorators.csrf import csrf_exempt
 
 import pandas as pd
 
@@ -198,3 +202,34 @@ class MatchList(generics.ListAPIView):
 class MatchDetail(generics.RetrieveAPIView):
     queryset = Match.objects.all()
     serializer_class = MatchSerializer
+
+
+@csrf_exempt
+def generate_prediction(request):
+    columns = [
+        'at_home',
+        'winning_at_half_time',
+        'possession',
+        'opp_possession',
+        'total_shots',
+        'opp_total_shots',
+        'shots_on_target',
+        'opp_shots_on_target',
+        'corners',
+        'opp_corners',
+        'fouls',
+        'opp_fouls',
+        'yellow_cards',
+        'opp_yellow_cards',
+        'red_cards',
+        'opp_red_cards'
+    ]
+
+    # Create OrderedDict of columns and data
+    match_data = [request.POST[col] for col in columns]
+
+    # Get predictive model from cache and make initial prediction
+    model = cache.get('decision_tree')
+
+    # Return prediction for now, this will change to returning the tactical suggestion
+    return Response(model.predict())

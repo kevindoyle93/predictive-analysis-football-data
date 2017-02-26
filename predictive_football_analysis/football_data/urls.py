@@ -37,4 +37,7 @@ urlpatterns = [
     url(r'^matches/(?P<pk>[0-9]+)/$',
         views.MatchDetail.as_view(),
         name='match-detail'),
+    url(r'get_tactical_advice/$',
+        views.generate_prediction,
+        name='get-tactical-advice'),
 ]
