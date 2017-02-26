@@ -1,4 +1,4 @@
-from collections import OrderedDict
+import json
 
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -7,6 +7,7 @@ from rest_framework import generics
 import django_filters
 
 from django.db.models import Q
+from django.http.response import JsonResponse
 from django.core.cache import cache
 from django.views.decorators.csrf import csrf_exempt
 
@@ -206,30 +207,30 @@ class MatchDetail(generics.RetrieveAPIView):
 
 @csrf_exempt
 def generate_prediction(request):
-    columns = [
-        'at_home',
-        'winning_at_half_time',
-        'possession',
-        'opp_possession',
-        'total_shots',
-        'opp_total_shots',
-        'shots_on_target',
-        'opp_shots_on_target',
-        'corners',
-        'opp_corners',
-        'fouls',
-        'opp_fouls',
-        'yellow_cards',
-        'opp_yellow_cards',
-        'red_cards',
-        'opp_red_cards'
+    match_data = [
+        bool(request.POST['at_home']),
+        bool(request.POST['winning_at_half_time']),
+        float(request.POST['possession']),
+        float(request.POST['opp_possession']),
+        int(request.POST['total_shots']),
+        int(request.POST['opp_total_shots']),
+        int(request.POST['shots_on_target']),
+        int(request.POST['opp_shots_on_target']),
+        int(request.POST['corners']),
+        int(request.POST['opp_corners']),
+        int(request.POST['fouls']),
+        int(request.POST['opp_fouls']),
+        int(request.POST['yellow_cards']),
+        int(request.POST['opp_yellow_cards']),
+        int(request.POST['red_cards']),
+        int(request.POST['opp_red_cards'])
     ]
-
-    # Create OrderedDict of columns and data
-    match_data = [request.POST[col] for col in columns]
 
     # Get predictive model from cache and make initial prediction
     model = cache.get('decision_tree')
 
     # Return prediction for now, this will change to returning the tactical suggestion
-    return Response(model.predict())
+    data = {
+        'result': bool(model.predict(match_data)[0])
+    }
+    return JsonResponse(data)
