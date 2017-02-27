@@ -232,7 +232,7 @@ def generate_prediction(request):
 
     # Return prediction for now, this will change to returning the tactical suggestion
     data = {
-        'result': 'win' if bool(model.predict(match_data)[0]) else 'not-win',
+        'result': 'win' if prediction[1] > prediction[0] else 'not-win',
         'win_probability': prediction[1],
         'loss_probability': prediction[0],
     }
