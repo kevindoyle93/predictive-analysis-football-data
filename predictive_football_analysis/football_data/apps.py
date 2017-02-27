@@ -14,10 +14,10 @@ class FootballDataConfig(AppConfig):
         The first time the app is run, the predictive models must be trained and cached
         """
 
-        self.create_decision_tree()
+        self.create_model()
 
     @staticmethod
-    def create_decision_tree():
+    def create_model():
         """
         Initialises and trains a Scikit-lean decision tree model
         """

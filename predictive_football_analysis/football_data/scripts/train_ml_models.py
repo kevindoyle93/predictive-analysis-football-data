@@ -1,7 +1,6 @@
 import pandas as pd
 
-from sklearn import preprocessing
-from sklearn import tree
+from sklearn import linear_model
 
 columns = [
         'won_match',
@@ -28,9 +27,9 @@ def create_data_frame():
     return pd.read_csv('football_data/scripts/individual_teams.csv')
 
 
-def create_decision_tree(training_features, target_feature):
-    decision_tree = tree.DecisionTreeClassifier()
-    return decision_tree.fit(training_features, target_feature)
+def create_logistic_regression_model(training_features, target_feature):
+    model = linear_model.LogisticRegression(solver='lbfgs')
+    return model.fit(training_features, target_feature)
 
 
 def create_models():
@@ -41,5 +40,5 @@ def create_models():
     target_feature = df[columns[0]]
 
     return {
-        'decision_tree': create_decision_tree(training_features, target_feature)
+        'logistic_regression': create_logistic_regression_model(training_features, target_feature)
     }

@@ -227,10 +227,13 @@ def generate_prediction(request):
     ]
 
     # Get predictive model from cache and make initial prediction
-    model = cache.get('decision_tree')
+    model = cache.get('logistic_regression')
+    prediction = model.predict_proba(match_data)[0]
 
     # Return prediction for now, this will change to returning the tactical suggestion
     data = {
-        'result': bool(model.predict(match_data)[0])
+        'result': 'win' if bool(model.predict(match_data)[0]) else 'not-win',
+        'win_probability': prediction[1],
+        'loss_probability': prediction[0],
     }
     return JsonResponse(data)
