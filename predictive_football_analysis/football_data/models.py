@@ -3,7 +3,9 @@ from django.db import models
 from django_countries.fields import CountryField
 from geopy.distance import distance
 from sklearn import tree
+import pandas as pd
 
+from football_data.constants import MACHINE_LEARNING_ALGORITHM_CHOICES, MACHINE_LEARNING_ALGORITHMS
 
 class League(models.Model):
     name = models.CharField(max_length=100, unique=True)
@@ -190,3 +192,49 @@ class PredictiveModel(models.Model):
 
 class DecisionTreeModel(PredictiveModel):
     model = tree.DecisionTreeClassifier()
+
+
+class Sport(models.Model):
+    name = models.CharField(max_length=50)
+
+    def __str__(self):
+        return self.name
+
+
+class MachineLearningModel(models.Model):
+    algorithm = models.CharField(max_length=50, choices=MACHINE_LEARNING_ALGORITHM_CHOICES)
+    sport = models.ForeignKey(to=Sport, related_name='models')
+    training_data = models.FileField(upload_to='training_data'.format(sport.name))
+
+    @property
+    def model(self):
+        return MACHINE_LEARNING_ALGORITHMS[self.algorithm]
+
+    @property
+    def training_columns(self):
+        return [feature.name for feature in self.features.all() if not feature.is_target_feature]
+
+    @property
+    def target_column(self):
+        return self.features.get(is_target_feature=True).name
+
+    def train(self):
+        training_data = pd.read_csv(self.training_data.path)
+        training_columns = self.training_columns
+        target_column = self.target_column
+
+        model = self.model
+        model.fit(training_data[training_columns], training_data[target_column])
+
+    def __str__(self):
+        return self.algorithm
+
+
+class DataFeature(models.Model):
+    display_name = models.CharField(max_length=40, help_text='The readable name of this feature')
+    name = models.CharField(max_length=50, help_text='The name as it appears in the dataset')
+    model = models.ForeignKey(to=MachineLearningModel, related_name='features')
+    is_target_feature = models.BooleanField(default=False)
+
+    def __str__(self):
+        return '{}: {}'.format(self.display_name, self.model.sport)

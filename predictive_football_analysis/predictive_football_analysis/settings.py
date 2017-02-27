@@ -117,6 +117,9 @@ USE_TZ = False
 
 STATIC_URL = '/static/'
 
+MEDIA_ROOT = '/home/kevin/fyp-uploaded-files/'
+MEDIA_URL = '/media/'
+
 # Caching
 CACHES = {
     'default': {
