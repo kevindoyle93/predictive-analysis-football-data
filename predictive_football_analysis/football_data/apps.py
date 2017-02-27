@@ -28,4 +28,4 @@ class FootballDataConfig(AppConfig):
 
         from football_data.models import MachineLearningModel
         for model in MachineLearningModel.objects.all():
-            model.train()
+            cache.set(model.algorithm, model.train())

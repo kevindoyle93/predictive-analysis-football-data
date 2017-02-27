@@ -227,7 +227,7 @@ def generate_prediction(request):
     ]
 
     # Get predictive model from cache and make initial prediction
-    model = cache.get('logistic_regression')
+    model = cache.get(MachineLearningModel.objects.get().algorithm)
     prediction = model.predict_proba(match_data)[0]
 
     # Return prediction for now, this will change to returning the tactical suggestion

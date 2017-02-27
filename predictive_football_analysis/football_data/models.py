@@ -226,6 +226,7 @@ class MachineLearningModel(models.Model):
 
         model = self.model
         model.fit(training_data[training_columns], training_data[target_column])
+        return model
 
     def __str__(self):
         return self.algorithm
@@ -235,7 +236,11 @@ class DataFeature(models.Model):
     display_name = models.CharField(max_length=40, help_text='The readable name of this feature')
     name = models.CharField(max_length=50, help_text='The name as it appears in the dataset')
     model = models.ForeignKey(to=MachineLearningModel, related_name='features')
+    column_index = models.IntegerField(help_text='The column index for this feature in the training data (1-indexed)')
     is_target_feature = models.BooleanField(default=False)
 
     def __str__(self):
         return '{}: {}'.format(self.display_name, self.model.sport)
+
+    # class Meta:
+    #     unique_together = ('model', 'column_number')
