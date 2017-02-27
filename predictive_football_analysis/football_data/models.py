@@ -7,6 +7,7 @@ import pandas as pd
 
 from football_data.constants import MACHINE_LEARNING_ALGORITHM_CHOICES, MACHINE_LEARNING_ALGORITHMS
 
+
 class League(models.Model):
     name = models.CharField(max_length=100, unique=True)
     country = CountryField()
