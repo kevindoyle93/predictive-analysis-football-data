@@ -300,15 +300,18 @@ class DataFeature(models.Model):
         elif self.data_type == 'int64':
             return int(value)
 
-    def generate_tactical_advice_card(self, increase_feature=True):
+    def generate_tactical_advice_card(self, value, initial_probability):
         title = '{} {}'.format(
-            'Increase' if increase_feature else 'Decrease',
+            'Increase' if self.positive_weight else 'Decrease',
             self.display_name
         )
 
-        body = 'Body of tactical advice card'
+        body = 'Increases probability of a win by {} to {}'.format(
+            format(value - initial_probability, '.2f'),
+            format(value, '.2f'),
+        )
 
-        drills = [{'name': drill.name, 'description': drill.description} for drill in self.training_drills]
+        drills = [{'name': drill.name, 'description': drill.description} for drill in self.training_drills.all()]
 
         return {
             'title': title,

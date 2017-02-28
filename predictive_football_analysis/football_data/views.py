@@ -223,23 +223,21 @@ def generate_prediction(request):
     model = cache.get(ml_model.algorithm)
     initial_prediction = model.predict_proba(match_data)[0]
 
-    predictions = []
-
+    # Get tactical advice from model
+    tactical_advice = []
     features_to_alter = ml_model.alterable_features()
-    for feature in list(features_to_alter):
+    for feature in features_to_alter:
         altered_match_data = np.array(match_data[0]).reshape(1, -1)
         altered_match_data[0][column_names.index(feature.name)] = feature.make_tactical_alteration(altered_match_data[0][column_names.index(feature.name)])
-        predictions.append({
-            'feature': feature,
-            'win_probability': model.predict_proba(altered_match_data)[0][1]
-        })
+
+        win_probability = model.predict_proba(altered_match_data)[0][1]
+        tactical_advice.append(feature.generate_tactical_advice_card(win_probability, initial_prediction[1]))
 
     # Return prediction for now, this will change to returning the tactical suggestion
     data = {
         'result': 'win' if initial_prediction[1] > initial_prediction[0] else 'not-win',
         'win_probability': initial_prediction[1],
         'not_win_probability': initial_prediction[0],
-        'altered_1_win_probability': predictions[0]['win_probability'],
-        'altered_2_win_probability': predictions[1]['win_probability'],
+        'tactical_advice': tactical_advice,
     }
     return JsonResponse(data)
