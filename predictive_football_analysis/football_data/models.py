@@ -216,6 +216,10 @@ class MachineLearningModel(models.Model):
         return self.features.filter(is_target_feature=False).order_by('column_index')
 
     @property
+    def descriptive_feature_names(self):
+        return [column.name for column in self.training_columns]
+
+    @property
     def target_column(self):
         return self.features.get(is_target_feature=True).name
 
@@ -227,6 +231,9 @@ class MachineLearningModel(models.Model):
         model = self.model
         model.fit(training_data[training_columns], training_data[target_column])
         return model
+
+    def alterable_features(self):
+        return self.features.annotate(drill_count=models.Count('training_drills')).filter(drill_count__gte=1)
 
     def __str__(self):
         return self.algorithm

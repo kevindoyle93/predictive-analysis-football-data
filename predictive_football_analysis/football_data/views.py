@@ -6,7 +6,7 @@ from rest_framework.reverse import reverse
 from rest_framework import generics
 import django_filters
 
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.http.response import JsonResponse
 from django.core.cache import cache
 from django.views.decorators.csrf import csrf_exempt
@@ -207,18 +207,32 @@ class MatchDetail(generics.RetrieveAPIView):
 
 @csrf_exempt
 def generate_prediction(request):
+    ml_model = MachineLearningModel.objects.get()
+    columns = ml_model.training_columns
+    column_names = ml_model.descriptive_feature_names
+
     match_data = [
-        column.from_string(request.POST[column.name]) for column in MachineLearningModel.objects.get().training_columns
+        column.from_string(request.POST[column.name]) for column in columns
     ]
 
     # Get predictive model from cache and make initial prediction
-    model = cache.get(MachineLearningModel.objects.get().algorithm)
-    prediction = model.predict_proba(match_data)[0]
+    model = cache.get(ml_model.algorithm)
+    initial_prediction = model.predict_proba(match_data)[0]
+
+    predictions = []
+
+    features_to_alter = ml_model.alterable_features()
+    for feature in list(features_to_alter):
+        altered_match_data = match_data
+        altered_match_data[column_names.index(feature.name)] += 100
+        predictions.append(model.predict_proba(altered_match_data)[0])
 
     # Return prediction for now, this will change to returning the tactical suggestion
     data = {
-        'result': 'win' if prediction[1] > prediction[0] else 'not-win',
-        'win_probability': prediction[1],
-        'not_win_probability': prediction[0],
+        'result': 'win' if initial_prediction[1] > initial_prediction[0] else 'not-win',
+        'win_probability': initial_prediction[1],
+        'not_win_probability': initial_prediction[0],
+        'altered_1_win_probability': predictions[0][1],
+        'altered_2_win_probability': predictions[1][1],
     }
     return JsonResponse(data)
