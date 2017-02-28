@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 from football_data.models import League, Team, Stadium, Player, Match, DecisionTreeModel, Sport, \
-    MachineLearningModel, DataFeature
+    MachineLearningModel, BooleanDataFeature, FloatDataFeature, IntegerDataFeature
 
 
 class LeagueAdmin(admin.ModelAdmin):
@@ -50,6 +50,10 @@ class MatchAdmin(admin.ModelAdmin):
     ]
     list_filter = ['home_team__league']
 
+
+class DataFeatureAdmin(admin.ModelAdmin):
+    list_display = ['display_name', 'column_index', 'model', 'is_target_feature']
+
 admin.site.register(League, LeagueAdmin)
 admin.site.register(Team, TeamAdmin)
 admin.site.register(Stadium, StadiumAdmin)
@@ -58,4 +62,6 @@ admin.site.register(Match, MatchAdmin)
 admin.site.register(DecisionTreeModel)
 admin.site.register(Sport),
 admin.site.register(MachineLearningModel),
-admin.site.register(DataFeature)
+admin.site.register(BooleanDataFeature, DataFeatureAdmin),
+admin.site.register(FloatDataFeature, DataFeatureAdmin),
+admin.site.register(IntegerDataFeature, DataFeatureAdmin),

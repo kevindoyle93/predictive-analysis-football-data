@@ -213,15 +213,31 @@ class MachineLearningModel(models.Model):
 
     @property
     def training_columns(self):
-        return [feature.name for feature in self.features.all() if not feature.is_target_feature]
+        cols = []
+        for feature in self.boolean_features.all():
+            if not feature.is_target_feature:
+                cols.append({'name': feature.name, 'column_index': feature.column_index, 'from_string': feature.from_string})
+        for feature in self.float_features.all():
+            if not feature.is_target_feature:
+                cols.append({'name': feature.name, 'column_index': feature.column_index, 'from_string': feature.from_string})
+        for feature in self.integer_features.all():
+            if not feature.is_target_feature:
+                cols.append({'name': feature.name, 'column_index': feature.column_index, 'from_string': feature.from_string})
+
+        return sorted(cols, key=lambda col: col['column_index'])
 
     @property
     def target_column(self):
-        return self.features.get(is_target_feature=True).name
+        if self.boolean_features.filter(is_target_feature=True).exists():
+            return self.boolean_features.get(is_target_feature=True).name
+        elif self.integer_features.filter(is_target_feature=True).exists():
+            return self.integer_features.get(is_target_feature=True).name
+        elif self.float_features.filter(is_target_feature=True).exists():
+            return self.float_features.get(is_target_feature=True).name
 
     def train(self):
         training_data = pd.read_csv(self.training_data.path)
-        training_columns = self.training_columns
+        training_columns = [col['name'] for col in self.training_columns]
         target_column = self.target_column
 
         model = self.model
@@ -235,12 +251,49 @@ class MachineLearningModel(models.Model):
 class DataFeature(models.Model):
     display_name = models.CharField(max_length=40, help_text='The readable name of this feature')
     name = models.CharField(max_length=50, help_text='The name as it appears in the dataset')
-    model = models.ForeignKey(to=MachineLearningModel, related_name='features')
     column_index = models.IntegerField(help_text='The column index for this feature in the training data (1-indexed)')
     is_target_feature = models.BooleanField(default=False)
+
+    @staticmethod
+    def from_string(value):
+        raise NotImplementedError
 
     def __str__(self):
         return '{}: {}'.format(self.display_name, self.model.sport)
 
-    # class Meta:
-    #     unique_together = ('model', 'column_number')
+    class Meta:
+        abstract = True
+        unique_together = ('model', 'column_index')
+
+
+class BooleanDataFeature(DataFeature):
+    model = models.ForeignKey(to=MachineLearningModel, related_name='boolean_features')
+
+    @staticmethod
+    def from_string(value):
+        return bool(value)
+
+    class Meta:
+        abstract = False
+
+
+class FloatDataFeature(DataFeature):
+    model = models.ForeignKey(to=MachineLearningModel, related_name='float_features')
+
+    @staticmethod
+    def from_string(value):
+        return float(value)
+
+    class Meta:
+        abstract = False
+
+
+class IntegerDataFeature(DataFeature):
+    model = models.ForeignKey(to=MachineLearningModel, related_name='integer_features')
+
+    @staticmethod
+    def from_string(value):
+        return int(value)
+
+    class Meta:
+        abstract = False

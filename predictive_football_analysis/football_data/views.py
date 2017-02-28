@@ -207,23 +207,18 @@ class MatchDetail(generics.RetrieveAPIView):
 
 @csrf_exempt
 def generate_prediction(request):
+    columns = []
+    for feature in BooleanDataFeature.objects.filter(model=MachineLearningModel.objects.get(), is_target_feature=False):
+        columns.append({'name': feature.name, 'column_index': feature.column_index, 'from_string': feature.from_string})
+    for feature in FloatDataFeature.objects.filter(model=MachineLearningModel.objects.get(), is_target_feature=False):
+        columns.append({'name': feature.name, 'column_index': feature.column_index, 'from_string': feature.from_string})
+    for feature in IntegerDataFeature.objects.filter(model=MachineLearningModel.objects.get(), is_target_feature=False):
+        columns.append({'name': feature.name, 'column_index': feature.column_index, 'from_string': feature.from_string})
+
+    columns = sorted(columns, key=lambda column: column['column_index'])
+
     match_data = [
-        bool(request.POST['at_home']),
-        bool(request.POST['winning_at_half_time']),
-        float(request.POST['possession']),
-        float(request.POST['opp_possession']),
-        int(request.POST['total_shots']),
-        int(request.POST['opp_total_shots']),
-        int(request.POST['shots_on_target']),
-        int(request.POST['opp_shots_on_target']),
-        int(request.POST['corners']),
-        int(request.POST['opp_corners']),
-        int(request.POST['fouls']),
-        int(request.POST['opp_fouls']),
-        int(request.POST['yellow_cards']),
-        int(request.POST['opp_yellow_cards']),
-        int(request.POST['red_cards']),
-        int(request.POST['opp_red_cards'])
+        column['from_string'](request.POST[column['name']]) for column in MachineLearningModel.objects.get().training_columns
     ]
 
     # Get predictive model from cache and make initial prediction
