@@ -229,6 +229,6 @@ def generate_prediction(request):
     data = {
         'result': 'win' if prediction[1] > prediction[0] else 'not-win',
         'win_probability': prediction[1],
-        'loss_probability': prediction[0],
+        'not_win_probability': prediction[0],
     }
     return JsonResponse(data)
