@@ -32,7 +32,7 @@ INSTALLED_APPS = [
     'rest_framework',
 
     'corsheaders',
-    'football_data.apps.FootballDataConfig',
+    'football_data',
 ]
 
 MIDDLEWARE = [
