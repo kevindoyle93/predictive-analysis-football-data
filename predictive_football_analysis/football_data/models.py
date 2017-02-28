@@ -254,8 +254,34 @@ class DataFeature(models.Model):
         elif self.data_type == 'int':
             return int(value)
 
+    def generate_tactical_advice_card(self, increase_feature=True):
+        title = '{} {}'.format(
+            'Increase' if increase_feature else 'Decrease',
+            self.display_name
+        )
+
+        body = 'Body of tactical advice card'
+
+        drills = [{'name': drill.name, 'description': drill.description} for drill in self.training_drills]
+
+        return {
+            'title': title,
+            'body': body,
+            'drills': drills
+        }
+
     def __str__(self):
         return '{}: {}'.format(self.display_name, self.model.sport)
 
     class Meta:
         unique_together = ('model', 'column_index')
+
+
+class TrainingDrill(models.Model):
+    name = models.CharField(max_length=70)
+    description = models.TextField()
+    sport = models.ForeignKey(to=Sport, related_name='training_drills')
+    feature = models.ForeignKey(to=DataFeature, related_name='training_drills')
+
+    def __str__(self):
+        return self.name
