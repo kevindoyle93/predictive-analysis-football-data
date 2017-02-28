@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.cache import cache
 
 from django_countries.fields import CountryField
 from geopy.distance import distance
@@ -206,6 +207,7 @@ class MachineLearningModel(models.Model):
     algorithm = models.CharField(max_length=50, choices=MACHINE_LEARNING_ALGORITHM_CHOICES)
     sport = models.ForeignKey(to=Sport, related_name='models')
     training_data = models.FileField(upload_to='training_data'.format(sport.name))
+    target_feature_name = models.CharField(max_length=60, help_text='The name of the target feature column as it appears in the training data')
 
     @property
     def model(self):
@@ -224,25 +226,50 @@ class MachineLearningModel(models.Model):
         return self.features.get(is_target_feature=True).name
 
     def train(self):
-        training_data = pd.read_csv(self.training_data.path)
-        training_columns = self.descriptive_feature_names
-        target_column = self.target_column
+        training_data = pd.read_csv(self.training_data.path, index_col=0)
+        training_columns = list(training_data.columns)
+
+        target_feature_index = training_columns.index(self.target_feature_name) + 1
+        training_column_indexes = [i + 1 for i in range(0, len(training_columns)) if i + 1 != target_feature_index]
+
+        training_columns.remove(self.target_feature_name)
 
         model = self.model
-        model.fit(training_data[training_columns], training_data[target_column])
+        model.fit(training_data[training_columns], training_data[self.target_feature_name])
 
-        # Set the pos/neg weight and standard deviation for each feature
-        features = list(self.training_columns)
+        # Create records for the descriptive features
         weights = model.coef_[0]
         for i in range(0, len(training_columns)):
-            features[i].std_dev = training_data[features[i].name].std()
-            features[i].positive_weight = weights[i] > 0
-            features[i].save()
+            DataFeature(
+                model=self,
+                name=training_columns[i],
+                display_name=training_columns[i],
+                column_index=training_column_indexes[i],
+                is_target_feature=False,
+                positive_weight=weights[i] >= 0,
+                std_dev=training_data[training_columns[i]].std(),
+                data_type=training_data[training_columns[i]].dtype.name
+            ).save()
+
+        # Create a record for the target feature
+        DataFeature(
+            model=self,
+            name=self.target_feature_name,
+            display_name=self.target_feature_name,
+            column_index=target_feature_index,
+            is_target_feature=True,
+            std_dev=training_data[self.target_feature_name].std(),
+            data_type=training_data[self.target_feature_name].dtype.name
+        ).save()
 
         return model
 
     def alterable_features(self):
         return self.features.annotate(drill_count=models.Count('training_drills')).filter(drill_count__gte=1)
+
+    def save(self, *args, **kwargs):
+        super(MachineLearningModel, self).save(*args, **kwargs)
+        cache.set(self.algorithm, self.train())
 
     def __str__(self):
         return self.algorithm
@@ -251,11 +278,11 @@ class MachineLearningModel(models.Model):
 class DataFeature(models.Model):
     DATA_TYPE_CHOICES = (
         ('bool', 'Boolean'),
-        ('float', 'Float'),
-        ('int', 'Integer'),
+        ('float64', 'Float'),
+        ('int64', 'Integer'),
     )
 
-    display_name = models.CharField(max_length=40, help_text='The readable name of this feature')
+    display_name = models.CharField(max_length=40, help_text='The readable name of this feature', blank=True, null=True)
     name = models.CharField(max_length=50, help_text='The name as it appears in the dataset')
     model = models.ForeignKey(to=MachineLearningModel, related_name='features')
     column_index = models.IntegerField(help_text='The column index for this feature in the training data (1-indexed)')
@@ -268,9 +295,9 @@ class DataFeature(models.Model):
     def from_string(self, value):
         if self.data_type == 'bool':
             return bool(value)
-        elif self.data_type == 'float':
+        elif self.data_type == 'float64':
             return float(value)
-        elif self.data_type == 'int':
+        elif self.data_type == 'int64':
             return int(value)
 
     def generate_tactical_advice_card(self, increase_feature=True):
@@ -288,6 +315,9 @@ class DataFeature(models.Model):
             'body': body,
             'drills': drills
         }
+
+    def make_tactical_alteration(self, value):
+        return value + self.std_dev if self.positive_weight else value - self.std_dev
 
     def __str__(self):
         return '{}: {}'.format(self.display_name, self.model.sport)
