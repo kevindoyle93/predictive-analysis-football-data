@@ -240,27 +240,35 @@ class MachineLearningModel(models.Model):
         # Create records for the descriptive features
         weights = model.coef_[0]
         for i in range(0, len(training_columns)):
-            DataFeature(
+            feature, created = DataFeature.objects.get_or_create(
                 model=self,
                 name=training_columns[i],
                 display_name=training_columns[i],
                 column_index=training_column_indexes[i],
                 is_target_feature=False,
-                positive_weight=weights[i] >= 0,
-                std_dev=training_data[training_columns[i]].std(),
-                data_type=training_data[training_columns[i]].dtype.name
-            ).save()
+                data_type=training_data[training_columns[i]].dtype.name,
+                defaults={
+                    'positive_weight': weights[i] >= 0,
+                    'mean': training_data[training_columns[i]].mean(),
+                    'std_dev': training_data[training_columns[i]].std(),
+                }
+            )
+            feature.save()
 
         # Create a record for the target feature
-        DataFeature(
+        feature, created = DataFeature.objects.get_or_create(
             model=self,
             name=self.target_feature_name,
             display_name=self.target_feature_name,
             column_index=target_feature_index,
             is_target_feature=True,
-            std_dev=training_data[self.target_feature_name].std(),
-            data_type=training_data[self.target_feature_name].dtype.name
-        ).save()
+            defaults={
+                'mean': training_data[self.target_feature_name].mean(),
+                'std_dev': training_data[self.target_feature_name].std(),
+                'data_type': training_data[self.target_feature_name].dtype.name,
+            }
+        )
+        feature.save()
 
         return model
 
@@ -290,6 +298,7 @@ class DataFeature(models.Model):
     data_type = models.CharField(max_length=10, choices=DATA_TYPE_CHOICES)
 
     positive_weight = models.NullBooleanField()
+    mean = models.FloatField(default=0)
     std_dev = models.FloatField(default=0)
 
     def from_string(self, value):
@@ -320,7 +329,17 @@ class DataFeature(models.Model):
         }
 
     def make_tactical_alteration(self, value):
-        return value + self.std_dev if self.positive_weight else value - self.std_dev
+        if value < self.mean:
+            alteration = self.mean / 2
+        else:
+            alteration = self.mean / 6
+
+        altered_value = value + alteration if self.positive_weight else value - alteration
+
+        if self.data_type == 'int64':
+            return int(altered_value)
+
+        return altered_value
 
     def __str__(self):
         return '{}: {}'.format(self.display_name, self.model.sport)
