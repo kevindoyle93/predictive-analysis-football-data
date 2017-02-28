@@ -12,6 +12,7 @@ from django.core.cache import cache
 from django.views.decorators.csrf import csrf_exempt
 
 import pandas as pd
+import numpy as np
 
 from football_data.serializers import *
 from football_data.models import *
@@ -215,6 +216,9 @@ def generate_prediction(request):
         column.from_string(request.POST[column.name]) for column in columns
     ]
 
+    # Reshape for Scikit-learn
+    match_data = np.array(match_data).reshape(1, -1)
+
     # Get predictive model from cache and make initial prediction
     model = cache.get(ml_model.algorithm)
     initial_prediction = model.predict_proba(match_data)[0]
@@ -223,8 +227,8 @@ def generate_prediction(request):
 
     features_to_alter = ml_model.alterable_features()
     for feature in list(features_to_alter):
-        altered_match_data = match_data
-        altered_match_data[column_names.index(feature.name)] += 100
+        altered_match_data = np.array(match_data[0]).reshape(1, -1)
+        altered_match_data[0][column_names.index(feature.name)] = feature.make_tactical_alteration(altered_match_data[0][column_names.index(feature.name)])
         predictions.append({
             'feature': feature,
             'win_probability': model.predict_proba(altered_match_data)[0][1]
