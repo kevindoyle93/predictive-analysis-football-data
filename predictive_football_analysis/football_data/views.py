@@ -225,14 +225,17 @@ def generate_prediction(request):
     for feature in list(features_to_alter):
         altered_match_data = match_data
         altered_match_data[column_names.index(feature.name)] += 100
-        predictions.append(model.predict_proba(altered_match_data)[0])
+        predictions.append({
+            'feature': feature,
+            'win_probability': model.predict_proba(altered_match_data)[0][1]
+        })
 
     # Return prediction for now, this will change to returning the tactical suggestion
     data = {
         'result': 'win' if initial_prediction[1] > initial_prediction[0] else 'not-win',
         'win_probability': initial_prediction[1],
         'not_win_probability': initial_prediction[0],
-        'altered_1_win_probability': predictions[0][1],
-        'altered_2_win_probability': predictions[1][1],
+        'altered_1_win_probability': predictions[0]['win_probability'],
+        'altered_2_win_probability': predictions[1]['win_probability'],
     }
     return JsonResponse(data)

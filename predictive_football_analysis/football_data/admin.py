@@ -53,6 +53,7 @@ class MatchAdmin(admin.ModelAdmin):
 
 class DataFeatureAdmin(admin.ModelAdmin):
     list_display = ['display_name', 'column_index', 'model', 'is_target_feature']
+    readonly_fields = ['positive_weight', 'std_dev']
 
 
 class TrainingDrillAdmin(admin.ModelAdmin):

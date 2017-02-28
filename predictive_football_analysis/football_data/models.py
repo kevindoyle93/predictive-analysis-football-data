@@ -225,11 +225,20 @@ class MachineLearningModel(models.Model):
 
     def train(self):
         training_data = pd.read_csv(self.training_data.path)
-        training_columns = [col.name for col in self.training_columns]
+        training_columns = self.descriptive_feature_names
         target_column = self.target_column
 
         model = self.model
         model.fit(training_data[training_columns], training_data[target_column])
+
+        # Set the pos/neg weight and standard deviation for each feature
+        features = list(self.training_columns)
+        weights = model.coef_[0]
+        for i in range(0, len(training_columns)):
+            features[i].std_dev = training_data[features[i].name].std()
+            features[i].positive_weight = weights[i] > 0
+            features[i].save()
+
         return model
 
     def alterable_features(self):
@@ -252,6 +261,9 @@ class DataFeature(models.Model):
     column_index = models.IntegerField(help_text='The column index for this feature in the training data (1-indexed)')
     is_target_feature = models.BooleanField(default=False)
     data_type = models.CharField(max_length=10, choices=DATA_TYPE_CHOICES)
+
+    positive_weight = models.NullBooleanField()
+    std_dev = models.FloatField(default=0)
 
     def from_string(self, value):
         if self.data_type == 'bool':
