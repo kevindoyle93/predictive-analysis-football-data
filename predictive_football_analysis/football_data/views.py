@@ -207,18 +207,8 @@ class MatchDetail(generics.RetrieveAPIView):
 
 @csrf_exempt
 def generate_prediction(request):
-    columns = []
-    for feature in BooleanDataFeature.objects.filter(model=MachineLearningModel.objects.get(), is_target_feature=False):
-        columns.append({'name': feature.name, 'column_index': feature.column_index, 'from_string': feature.from_string})
-    for feature in FloatDataFeature.objects.filter(model=MachineLearningModel.objects.get(), is_target_feature=False):
-        columns.append({'name': feature.name, 'column_index': feature.column_index, 'from_string': feature.from_string})
-    for feature in IntegerDataFeature.objects.filter(model=MachineLearningModel.objects.get(), is_target_feature=False):
-        columns.append({'name': feature.name, 'column_index': feature.column_index, 'from_string': feature.from_string})
-
-    columns = sorted(columns, key=lambda column: column['column_index'])
-
     match_data = [
-        column['from_string'](request.POST[column['name']]) for column in MachineLearningModel.objects.get().training_columns
+        column.from_string(request.POST[column.name]) for column in MachineLearningModel.objects.get().training_columns
     ]
 
     # Get predictive model from cache and make initial prediction

@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 from football_data.models import League, Team, Stadium, Player, Match, DecisionTreeModel, Sport, \
-    MachineLearningModel, BooleanDataFeature, FloatDataFeature, IntegerDataFeature
+    MachineLearningModel, DataFeature
 
 
 class LeagueAdmin(admin.ModelAdmin):
@@ -62,6 +62,4 @@ admin.site.register(Match, MatchAdmin)
 admin.site.register(DecisionTreeModel)
 admin.site.register(Sport),
 admin.site.register(MachineLearningModel),
-admin.site.register(BooleanDataFeature, DataFeatureAdmin),
-admin.site.register(FloatDataFeature, DataFeatureAdmin),
-admin.site.register(IntegerDataFeature, DataFeatureAdmin),
+admin.site.register(DataFeature, DataFeatureAdmin),
