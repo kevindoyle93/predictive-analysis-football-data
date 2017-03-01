@@ -11,3 +11,4 @@ production.env
 .env
 .ipynb_checkpoints/
 notebooks/
+Vagrantfile
