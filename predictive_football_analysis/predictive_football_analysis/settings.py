@@ -117,7 +117,7 @@ USE_TZ = False
 
 STATIC_URL = '/static/'
 
-MEDIA_ROOT = '/home/kevin/fyp-uploaded-files/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'fyp-uploaded-files/')
 MEDIA_URL = '/media/'
 
 # Caching

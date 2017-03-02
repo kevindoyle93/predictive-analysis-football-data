@@ -52,7 +52,7 @@ class MatchAdmin(admin.ModelAdmin):
 
 
 class DataFeatureAdmin(admin.ModelAdmin):
-    list_display = ['display_name', 'column_index', 'model', 'is_target_feature']
+    list_display = ['display_name', 'model', 'is_target_feature', 'positive_weight']
     readonly_fields = ['positive_weight', 'std_dev']
 
 

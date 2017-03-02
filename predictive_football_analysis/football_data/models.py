@@ -315,9 +315,9 @@ class DataFeature(models.Model):
             self.display_name
         )
 
-        body = 'Increases probability of a win by {} to {}'.format(
-            format(value - initial_probability, '.2f'),
-            format(value, '.2f'),
+        body = 'Increases probability of a win by {}% to {}%'.format(
+            format((value - initial_probability) * 100, '.2f'),
+            format(value * 100, '.2f'),
         )
 
         drills = [{'name': drill.name, 'description': drill.description} for drill in self.training_drills.all()]
