@@ -12,3 +12,5 @@ production.env
 .ipynb_checkpoints/
 notebooks/
 Vagrantfile
+.vagrant/
+fpy-uploaded-files/
