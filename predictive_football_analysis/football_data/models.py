@@ -284,7 +284,8 @@ class MachineLearningModel(models.Model):
 
 
 class DataFeature(models.Model):
-    """ Column of an Analytics Base Table (ABT)
+    """
+    Column of an Analytics Base Table (ABT)
 
     Data features are automatically added when a model is trained.
 
@@ -334,21 +335,33 @@ class DataFeature(models.Model):
         }
 
     def make_tactical_alteration(self, value):
-        """ Make a viable alteration to the value of a data feature
+        """
+        Make a viable alteration to the value of a data feature
 
         The magnitude of the alteration to a feature value must be viable. Tactical advice can only
         be suitable if the changes being suggested are actually achievable.
 
-        The alteration is calculated as one standard deviation from the current value.
+        The maximum alteration is considered to be two standard deviations, and the min is one tenth of the mean. If
+        the max is calculated as less than 1 it will set as 2, and if the min is less than 1 it is set as 1.
+
+        The alteration is calculated as the standard deviation to the power of the number of standard deviations away
+        from the mean the value is. This means higher alterations for values significantly lower than the mean, and
+        lower alterations for values significantly higher than the mean.
+
+        TODO: Try using a sigmoid function to calculate the alteration.
 
         :param value: the value for this feature of the instance being altered
         :return: the altered value for this feature
         """
 
-        if value < self.mean:
-            alteration = self.mean / 2
-        else:
-            alteration = self.mean / 6
+        max_alteration = max(self.std_dev * 2, 2)
+        min_alteration = max(self.mean / 10, 1)
+
+        current_distance_from_mean = self.mean - value
+        alteration = self.std_dev ** (current_distance_from_mean / self.std_dev)
+
+        # Clamp the alteration between min_alteration and max_alteration
+        alteration = max(min(alteration, max_alteration), min_alteration)
 
         altered_value = value + alteration if self.positive_weight else value - alteration
 
@@ -365,7 +378,8 @@ class DataFeature(models.Model):
 
 
 class TrainingDrill(models.Model):
-    """ A usable drill a coach could add to a training session.
+    """
+    A usable drill a coach could add to a training session.
 
     Each drill is related to a particular sport and data feature.
     The feature field tells the coach which feature of the predictive model would be improved
