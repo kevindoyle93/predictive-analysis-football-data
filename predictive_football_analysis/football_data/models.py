@@ -284,6 +284,11 @@ class MachineLearningModel(models.Model):
 
 
 class DataFeature(models.Model):
+    """ Column of an Analytics Base Table (ABT)
+
+    Data features are automatically added when a model is trained.
+
+    """
     DATA_TYPE_CHOICES = (
         ('bool', 'Boolean'),
         ('float64', 'Float'),
@@ -329,6 +334,17 @@ class DataFeature(models.Model):
         }
 
     def make_tactical_alteration(self, value):
+        """ Make a viable alteration to the value of a data feature
+
+        The magnitude of the alteration to a feature value must be viable. Tactical advice can only
+        be suitable if the changes being suggested are actually achievable.
+
+        The alteration is calculated as one standard deviation from the current value.
+
+        :param value: the value for this feature of the instance being altered
+        :return: the altered value for this feature
+        """
+
         if value < self.mean:
             alteration = self.mean / 2
         else:
@@ -349,6 +365,14 @@ class DataFeature(models.Model):
 
 
 class TrainingDrill(models.Model):
+    """ A usable drill a coach could add to a training session.
+
+    Each drill is related to a particular sport and data feature.
+    The feature field tells the coach which feature of the predictive model would be improved
+    by implementing this drill.
+
+    """
+
     name = models.CharField(max_length=70)
     description = models.TextField()
     sport = models.ForeignKey(to=Sport, related_name='training_drills')
