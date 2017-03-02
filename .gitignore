@@ -13,4 +13,4 @@ production.env
 notebooks/
 Vagrantfile
 .vagrant/
-predictive_football_analysis/fpy-uploaded-files/training_data
+predictive_football_analysis/fpy-uploaded-files/training_data/
