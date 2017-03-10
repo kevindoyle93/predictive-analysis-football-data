@@ -1,17 +1,13 @@
-import json
-
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework import generics
 import django_filters
 
-from django.db.models import Q, Count
+from django.db.models import Q
 from django.http.response import JsonResponse
-from django.core.cache import cache
 from django.views.decorators.csrf import csrf_exempt
 
-import pandas as pd
 import numpy as np
 
 from football_data.serializers import *
@@ -23,8 +19,6 @@ def api_root(request, format=None):
     return Response({
         'leagues': reverse('league-list', request=request, format=format),
         'teams': reverse('team-list', request=request, format=format),
-        'stadiums': reverse('stadium-list', request=request, format=format),
-        'players': reverse('player-list', request=request, format=format),
         'matches': reverse('match-list', request=request, format=format),
     })
 
@@ -70,26 +64,6 @@ class TeamMatchesList(generics.ListAPIView):
         return None
 
     serializer_class = TeamMatchSerializer
-
-
-class StadiumList(generics.ListAPIView):
-    queryset = Stadium.objects.all()
-    serializer_class = StadiumSerializer
-
-
-class StadiumDetail(generics.RetrieveAPIView):
-    queryset = Stadium.objects.all()
-    serializer_class = StadiumSerializer
-
-
-class PlayerList(generics.ListAPIView):
-    queryset = Player.objects.all()
-    serializer_class = PlayerSerializer
-
-
-class PlayerDetail(generics.RetrieveAPIView):
-    queryset = Player.objects.all()
-    serializer_class = PlayerSerializer
 
 
 class MatchFilter(django_filters.FilterSet):
