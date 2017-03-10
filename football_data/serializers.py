@@ -39,18 +39,10 @@ class MatchSerializer(serializers.ModelSerializer):
             'away_corners',
             'home_fouls_committed',
             'away_fouls_committed',
-            'home_offsides',
-            'away_offsides',
             'home_yellow_cards',
             'away_yellow_cards',
             'home_red_cards',
             'away_red_cards',
-            'home_win_average_odds',
-            'draw_average_odds',
-            'away_win_average_odds',
-            'home_win_max_odds',
-            'draw_max_odds',
-            'away_win_max_odds',
         ]
 
 

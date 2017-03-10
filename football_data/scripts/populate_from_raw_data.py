@@ -16,10 +16,12 @@ def create_leagues():
 
     if League.objects.count() != 5:
         raise Exception('Looks like the teams didn\'t load, what\'s up with that?')
+    else:
+        print('Leagues done!')
 
 
 def import_teams():
-    # Team.objects.all().delete()
+    Team.objects.all().delete()
 
     kaggle_teams = {}
     # Get team names and API IDs from the Kaggle dataset
@@ -42,12 +44,12 @@ def import_teams():
     ]
 
     seasons = [
-        # '2011-2012.csv',
-        # '2012-2013.csv',
-        # '2013-2014.csv',
-        # '2014-2015.csv',
-        # '2015-2016.csv',
-        '2016-2017.csv'
+        '2011-2012.csv',
+        '2012-2013.csv',
+        '2013-2014.csv',
+        '2014-2015.csv',
+        '2015-2016.csv',
+        '2016-2017.csv',
     ]
 
     for league_name in leagues:
@@ -74,12 +76,11 @@ def import_teams():
                         Team.objects.create(
                             name=team_name,
                             league=league,
-                            kaggle_api_id=kaggle_teams[team_name]
                         )
 
 
 def import_matches():
-    # Match.objects.all().delete()
+    Match.objects.all().delete()
     file_path = 'football_data/raw_data/football-data-co-uk/'
     leagues = [
         ('premier_league/', team_names_map.PREMIER_LEAGUE),
@@ -90,11 +91,11 @@ def import_matches():
     ]
 
     seasons = [
-        # '2011-2012.csv',
-        # '2012-2013.csv',
-        # '2013-2014.csv',
-        # '2014-2015.csv',
-        # '2015-2016.csv',
+        '2011-2012.csv',
+        '2012-2013.csv',
+        '2013-2014.csv',
+        '2014-2015.csv',
+        '2015-2016.csv',
         '2016-2017.csv',
     ]
 
