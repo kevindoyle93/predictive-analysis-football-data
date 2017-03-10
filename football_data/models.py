@@ -2,8 +2,6 @@ from django.db import models
 from django.core.cache import cache
 
 from django_countries.fields import CountryField
-from geopy.distance import distance
-from sklearn import tree
 import pandas as pd
 
 from football_data.constants import MACHINE_LEARNING_ALGORITHM_CHOICES, MACHINE_LEARNING_ALGORITHMS
