@@ -32,7 +32,7 @@ INSTALLED_APPS = [
     'rest_framework',
 
     'corsheaders',
-    'football_data.apps.FootballDataConfig',
+    'football_data',
 ]
 
 MIDDLEWARE = [
@@ -116,6 +116,9 @@ USE_TZ = False
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
 
 STATIC_URL = '/static/'
+
+MEDIA_ROOT = os.path.join(BASE_DIR, 'fyp-uploaded-files/')
+MEDIA_URL = '/media/'
 
 # Caching
 CACHES = {

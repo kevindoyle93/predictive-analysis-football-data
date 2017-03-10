@@ -1,6 +1,7 @@
 from django.contrib import admin
 
-from football_data.models import League, Team, Stadium, Player, Match, DecisionTreeModel
+from football_data.models import League, Team, Stadium, Player, Match, DecisionTreeModel, Sport, \
+    MachineLearningModel, DataFeature, TrainingDrill
 
 
 class LeagueAdmin(admin.ModelAdmin):
@@ -49,9 +50,22 @@ class MatchAdmin(admin.ModelAdmin):
     ]
     list_filter = ['home_team__league']
 
+
+class DataFeatureAdmin(admin.ModelAdmin):
+    list_display = ['display_name', 'model', 'is_target_feature', 'positive_weight']
+    readonly_fields = ['positive_weight', 'std_dev']
+
+
+class TrainingDrillAdmin(admin.ModelAdmin):
+    list_display = ['name', 'feature']
+
 admin.site.register(League, LeagueAdmin)
 admin.site.register(Team, TeamAdmin)
 admin.site.register(Stadium, StadiumAdmin)
 admin.site.register(Player, PlayerAdmin)
 admin.site.register(Match, MatchAdmin)
 admin.site.register(DecisionTreeModel)
+admin.site.register(Sport)
+admin.site.register(MachineLearningModel)
+admin.site.register(DataFeature, DataFeatureAdmin)
+admin.site.register(TrainingDrill, TrainingDrillAdmin)

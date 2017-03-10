@@ -6,12 +6,13 @@ from rest_framework.reverse import reverse
 from rest_framework import generics
 import django_filters
 
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.http.response import JsonResponse
 from django.core.cache import cache
 from django.views.decorators.csrf import csrf_exempt
 
 import pandas as pd
+import numpy as np
 
 from football_data.serializers import *
 from football_data.models import *
@@ -207,33 +208,36 @@ class MatchDetail(generics.RetrieveAPIView):
 
 @csrf_exempt
 def generate_prediction(request):
+    ml_model = MachineLearningModel.objects.get()
+    columns = ml_model.training_columns
+    column_names = ml_model.descriptive_feature_names
+
     match_data = [
-        bool(request.POST['at_home']),
-        bool(request.POST['winning_at_half_time']),
-        float(request.POST['possession']),
-        float(request.POST['opp_possession']),
-        int(request.POST['total_shots']),
-        int(request.POST['opp_total_shots']),
-        int(request.POST['shots_on_target']),
-        int(request.POST['opp_shots_on_target']),
-        int(request.POST['corners']),
-        int(request.POST['opp_corners']),
-        int(request.POST['fouls']),
-        int(request.POST['opp_fouls']),
-        int(request.POST['yellow_cards']),
-        int(request.POST['opp_yellow_cards']),
-        int(request.POST['red_cards']),
-        int(request.POST['opp_red_cards'])
+        column.from_string(request.POST[column.name]) for column in columns
     ]
 
+    # Reshape for Scikit-learn
+    match_data = np.array(match_data).reshape(1, -1)
+
     # Get predictive model from cache and make initial prediction
-    model = cache.get('logistic_regression')
-    prediction = model.predict_proba(match_data)[0]
+    model = cache.get(ml_model.algorithm)
+    initial_prediction = model.predict_proba(match_data)[0]
+
+    # Get tactical advice from model
+    tactical_advice = []
+    features_to_alter = ml_model.alterable_features()
+    for feature in features_to_alter:
+        altered_match_data = np.array(match_data[0]).reshape(1, -1)
+        altered_match_data[0][column_names.index(feature.name)] = feature.make_tactical_alteration(altered_match_data[0][column_names.index(feature.name)])
+
+        win_probability = model.predict_proba(altered_match_data)[0][1]
+        tactical_advice.append(feature.generate_tactical_advice_card(win_probability, initial_prediction[1]))
 
     # Return prediction for now, this will change to returning the tactical suggestion
     data = {
-        'result': 'win' if prediction[1] > prediction[0] else 'not-win',
-        'win_probability': prediction[1],
-        'loss_probability': prediction[0],
+        'result': 'win' if initial_prediction[1] > initial_prediction[0] else 'not-win',
+        'win_probability': initial_prediction[1],
+        'not_win_probability': initial_prediction[0],
+        'tactical_advice': tactical_advice,
     }
     return JsonResponse(data)
