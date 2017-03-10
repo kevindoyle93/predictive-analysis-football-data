@@ -10,4 +10,3 @@ production.env
 .env
 .vagrant/
 fyp-uploaded-files/
-manage.py
