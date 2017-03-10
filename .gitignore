@@ -5,12 +5,9 @@ pip-selfcheck.json
 /lib
 /share
 db.sqlite3
-/.idea
-predictive_football_analysis/.idea
+.idea/
 production.env
 .env
-.ipynb_checkpoints/
-notebooks/
-Vagrantfile
 .vagrant/
-predictive_football_analysis/fpy-uploaded-files/training_data/
+fyp-uploaded-files/
+manage.py
