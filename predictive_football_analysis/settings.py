@@ -30,7 +30,7 @@ INSTALLED_APPS = [
     'django_extensions',
     'django_countries',
     'rest_framework',
-
+    'rest_framework.authtoken',
     'corsheaders',
     'football_data',
 ]

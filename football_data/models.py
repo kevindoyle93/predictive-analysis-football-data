@@ -1,88 +1,14 @@
 from django.db import models
 from django.core.cache import cache
-
+from django.conf import settings
+from django.contrib.auth.models import User
+from django.dispatch import receiver
+from django.db.models.signals import post_save
+from rest_framework.authtoken.models import Token
 from django_countries.fields import CountryField
 import pandas as pd
 
 from football_data.constants import MACHINE_LEARNING_ALGORITHM_CHOICES, MACHINE_LEARNING_ALGORITHMS
-
-
-class League(models.Model):
-    name = models.CharField(max_length=100, unique=True)
-    country = CountryField()
-
-    def __str__(self):
-        return self.name
-
-
-class Team(models.Model):
-    name = models.CharField(max_length=100, unique=True)
-    league = models.ForeignKey(League, related_name='teams')
-
-    def __str__(self):
-        return self.name
-
-    class Meta:
-        ordering = ['league', 'name']
-
-
-class Match(models.Model):
-    date = models.DateTimeField()
-    home_team = models.ForeignKey(Team, related_name='home_matches')
-    away_team = models.ForeignKey(Team, related_name='away_matches')
-    full_time_home_goals = models.PositiveSmallIntegerField()
-    full_time_away_goals = models.PositiveSmallIntegerField()
-    half_time_home_goals = models.PositiveSmallIntegerField()
-    half_time_away_goals = models.PositiveSmallIntegerField()
-    full_time_result = models.CharField(
-        max_length=1,
-        choices=[
-            ('H', 'Home win'),
-            ('D', 'Draw'),
-            ('A', 'Away win')
-        ]
-    )
-    half_time_result = models.CharField(
-        max_length=1,
-        choices=[
-            ('H', 'Home win'),
-            ('D', 'Draw'),
-            ('A', 'Away win')
-        ]
-    )
-
-    # Stats
-    home_possession = models.DecimalField(max_digits=3, decimal_places=1, null=True, blank=True)
-    away_possession = models.DecimalField(max_digits=3, decimal_places=1, null=True, blank=True)
-    home_total_shots = models.PositiveSmallIntegerField()
-    away_total_shots = models.PositiveSmallIntegerField()
-    home_shots_on_target = models.PositiveSmallIntegerField()
-    away_shots_on_target = models.PositiveSmallIntegerField()
-    home_corners = models.PositiveSmallIntegerField()
-    away_corners = models.PositiveSmallIntegerField()
-    home_fouls_committed = models.PositiveSmallIntegerField()
-    away_fouls_committed = models.PositiveSmallIntegerField()
-    home_yellow_cards = models.PositiveSmallIntegerField()
-    away_yellow_cards = models.PositiveSmallIntegerField()
-    home_red_cards = models.PositiveSmallIntegerField()
-    away_red_cards = models.PositiveSmallIntegerField()
-
-    def __str__(self):
-        return '{h} v {a}'.format(h=self.home_team, a=self.away_team)
-
-    class Meta:
-        verbose_name_plural = 'Matches'
-
-
-class PredictiveModel(models.Model):
-    name = models.CharField(max_length=100)
-    algorithm = models.CharField(max_length=100)
-
-    model = None
-
-    @property
-    def model(self):
-        return self.model
 
 
 class MachineLearningModel(models.Model):
@@ -90,6 +16,7 @@ class MachineLearningModel(models.Model):
     training_data = models.FileField(upload_to='training_data')
     target_feature_name = models.CharField(max_length=60, help_text='The name of the target feature column as it '
                                                                     'appears in the training data')
+    default = models.BooleanField(default=False, help_text='Is this the default model? (There can only be one)')
 
     @property
     def model(self):
@@ -275,3 +202,92 @@ class TrainingDrill(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class Coach(models.Model):
+    user = models.ForeignKey(User)
+    predictive_model = models.ForeignKey(MachineLearningModel, blank=True, null=True)
+
+    @property
+    def get_predictive_model(self):
+        return cache.get('{}:{}'.format(self.user.username, self.predictive_model.algorithm))
+
+    def __str__(self):
+        return self.user.username
+
+
+# Receiver to create an auth token whenever a user is created
+@receiver(post_save, sender=settings.AUTH_USER_MODEL)
+def create_auth_token(sender, instance=None, created=False, **kwargs):
+    if created:
+        Token.objects.create(user=instance)
+
+
+class League(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    country = CountryField()
+
+    def __str__(self):
+        return self.name
+
+
+class Team(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    league = models.ForeignKey(League, related_name='teams', blank=True, null=True)
+    coach = models.OneToOneField(Coach, blank=True, null=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        ordering = ['league', 'name']
+
+
+class Match(models.Model):
+    date = models.DateTimeField()
+    home_team = models.ForeignKey(Team, related_name='home_matches')
+    away_team = models.ForeignKey(Team, related_name='away_matches')
+    full_time_home_goals = models.PositiveSmallIntegerField()
+    full_time_away_goals = models.PositiveSmallIntegerField()
+    half_time_home_goals = models.PositiveSmallIntegerField()
+    half_time_away_goals = models.PositiveSmallIntegerField()
+    full_time_result = models.CharField(
+        max_length=1,
+        choices=[
+            ('H', 'Home win'),
+            ('D', 'Draw'),
+            ('A', 'Away win')
+        ]
+    )
+    half_time_result = models.CharField(
+        max_length=1,
+        choices=[
+            ('H', 'Home win'),
+            ('D', 'Draw'),
+            ('A', 'Away win')
+        ]
+    )
+
+    # Stats
+    home_possession = models.DecimalField(max_digits=3, decimal_places=1, null=True, blank=True)
+    away_possession = models.DecimalField(max_digits=3, decimal_places=1, null=True, blank=True)
+    home_total_shots = models.PositiveSmallIntegerField()
+    away_total_shots = models.PositiveSmallIntegerField()
+    home_shots_on_target = models.PositiveSmallIntegerField()
+    away_shots_on_target = models.PositiveSmallIntegerField()
+    home_corners = models.PositiveSmallIntegerField()
+    away_corners = models.PositiveSmallIntegerField()
+    home_fouls_committed = models.PositiveSmallIntegerField()
+    away_fouls_committed = models.PositiveSmallIntegerField()
+    home_yellow_cards = models.PositiveSmallIntegerField()
+    away_yellow_cards = models.PositiveSmallIntegerField()
+    home_red_cards = models.PositiveSmallIntegerField()
+    away_red_cards = models.PositiveSmallIntegerField()
+
+    training_data = models.BooleanField(default=False)
+
+    def __str__(self):
+        return '{h} v {a}'.format(h=self.home_team, a=self.away_team)
+
+    class Meta:
+        verbose_name_plural = 'Matches'
