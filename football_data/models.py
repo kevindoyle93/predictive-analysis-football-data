@@ -205,7 +205,7 @@ class TrainingDrill(models.Model):
 
 
 class Coach(models.Model):
-    user = models.ForeignKey(User)
+    user = models.OneToOneField(User)
     predictive_model = models.ForeignKey(MachineLearningModel, blank=True, null=True)
 
     @property
@@ -291,3 +291,26 @@ class Match(models.Model):
 
     class Meta:
         verbose_name_plural = 'Matches'
+
+
+class AppMatch(models.Model):
+    coach = models.ForeignKey(Coach)
+    won_match = models.BooleanField()
+    at_home = models.BooleanField()
+    winning_at_half_time = models.BooleanField()
+    half_time_goals = models.PositiveSmallIntegerField()
+    opp_half_time_goals = models.PositiveSmallIntegerField()
+    possession = models.DecimalField(max_digits=3, decimal_places=1)
+    opp_possession = models.DecimalField(max_digits=3, decimal_places=1)
+    total_shots = models.PositiveSmallIntegerField()
+    opp_total_shots = models.PositiveSmallIntegerField()
+    shots_on_target = models.PositiveSmallIntegerField()
+    opp_shots_on_target = models.PositiveSmallIntegerField()
+    corners = models.PositiveSmallIntegerField()
+    opp_corners = models.PositiveSmallIntegerField()
+    fouls = models.PositiveSmallIntegerField()
+    opp_fouls = models.PositiveSmallIntegerField()
+    yellow_cards = models.PositiveSmallIntegerField()
+    opp_yellow_cards = models.PositiveSmallIntegerField()
+    red_cards = models.PositiveSmallIntegerField()
+    opp_red_cards = models.PositiveSmallIntegerField()
