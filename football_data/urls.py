@@ -1,9 +1,11 @@
 from django.conf.urls import url
+from rest_framework.authtoken.views import obtain_auth_token
 
 from football_data import views
 
 urlpatterns = [
     url(r'^$', views.api_root),
+    url(r'^api-token-auth/', obtain_auth_token),
     url(r'^leagues/$',
         views.LeagueList.as_view(),
         name='league-list'),
@@ -28,4 +30,7 @@ urlpatterns = [
     url(r'get_tactical_advice/$',
         views.generate_prediction,
         name='get-tactical-advice'),
+    url(r'coaches/$',
+        views.CoachCreate.as_view(),
+        name='coaches-create'),
 ]

@@ -3,6 +3,24 @@ from rest_framework import serializers
 from football_data.models import *
 
 
+class CoachSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Coach
+
+
+class UserSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = ('username', 'password')
+
+    def create(self, validated_data):
+        user = User.objects.create_user(**validated_data)
+        default_predictive_model = MachineLearningModel.objects.get()
+        Coach.objects.create(user=user, predictive_model=default_predictive_model)
+        return user
+
+
 class LeagueSerializer(serializers.ModelSerializer):
     class Meta:
         model = League

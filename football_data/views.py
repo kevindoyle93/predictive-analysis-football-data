@@ -20,7 +20,16 @@ def api_root(request, format=None):
         'leagues': reverse('league-list', request=request, format=format),
         'teams': reverse('team-list', request=request, format=format),
         'matches': reverse('match-list', request=request, format=format),
+        'coaches': reverse('coaches-create', request=request, format=format),
     })
+
+
+class CoachCreate(generics.CreateAPIView):
+    model = Coach
+    serializer_class = UserSerializer
+
+    def perform_create(self, serializer):
+        serializer.save()
 
 
 class LeagueList(generics.ListAPIView):
