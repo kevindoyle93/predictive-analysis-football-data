@@ -1,7 +1,7 @@
 import csv
 import datetime
 
-from football_data.models import League, Team, Stadium, Player, Match
+from football_data.models import League, Team, Match
 from football_data.raw_data import team_names_map
 
 
@@ -16,10 +16,12 @@ def create_leagues():
 
     if League.objects.count() != 5:
         raise Exception('Looks like the teams didn\'t load, what\'s up with that?')
+    else:
+        print('Leagues done!')
 
 
 def import_teams():
-    # Team.objects.all().delete()
+    Team.objects.all().delete()
 
     kaggle_teams = {}
     # Get team names and API IDs from the Kaggle dataset
@@ -42,12 +44,12 @@ def import_teams():
     ]
 
     seasons = [
-        # '2011-2012.csv',
-        # '2012-2013.csv',
-        # '2013-2014.csv',
-        # '2014-2015.csv',
-        # '2015-2016.csv',
-        '2016-2017.csv'
+        '2011-2012.csv',
+        '2012-2013.csv',
+        '2013-2014.csv',
+        '2014-2015.csv',
+        '2015-2016.csv',
+        '2016-2017.csv',
     ]
 
     for league_name in leagues:
@@ -74,62 +76,11 @@ def import_teams():
                         Team.objects.create(
                             name=team_name,
                             league=league,
-                            kaggle_api_id=kaggle_teams[team_name]
                         )
 
 
-def import_stadiums():
-    Stadium.objects.all().delete()
-    file_path = 'football_data/raw_data/jokecamp-footballdata/stadiums-with-GPS-coordinates.csv'
-
-    with open(file_path, 'r') as stadium_file:
-        reader = csv.reader(stadium_file)
-
-        # Skip headers line
-        next(reader)
-
-        for row in reader:
-            try:
-                team_name = team_names_map.match_team_name(row[1])
-            except Exception:
-                continue
-
-            if Team.objects.filter(name=team_name).count() == 1:
-                team = Team.objects.get(name=team_name)
-
-                Stadium.objects.create(
-                    name=row[3],
-                    lat=row[5],
-                    lng=row[6],
-                    team=team,
-                    capacity=row[4],
-                )
-
-
-def import_players():
-    Player.objects.all().delete()
-    file_path = 'football_data/raw_data/kaggle-data/Player.csv'
-    dob_format = '%Y-%m-%d'
-    with open(file_path, 'r') as player_file:
-        reader = csv.reader(player_file)
-
-        # Skip headers line
-        next(reader)
-
-        for row in reader:
-            dob_string = row[5][:10]
-            dob = datetime.datetime.strptime(dob_string, dob_format).date()
-            Player.objects.create(
-                name=row[3],
-                kaggle_api_id=row[2],
-                date_of_birth=dob,
-                height=row[6],
-                weight=row[7]
-            )
-
-
 def import_matches():
-    # Match.objects.all().delete()
+    Match.objects.all().delete()
     file_path = 'football_data/raw_data/football-data-co-uk/'
     leagues = [
         ('premier_league/', team_names_map.PREMIER_LEAGUE),
@@ -140,11 +91,11 @@ def import_matches():
     ]
 
     seasons = [
-        # '2011-2012.csv',
-        # '2012-2013.csv',
-        # '2013-2014.csv',
-        # '2014-2015.csv',
-        # '2015-2016.csv',
+        '2011-2012.csv',
+        '2012-2013.csv',
+        '2013-2014.csv',
+        '2014-2015.csv',
+        '2015-2016.csv',
         '2016-2017.csv',
     ]
 
@@ -193,142 +144,10 @@ def import_matches():
                         return
 
 
-def import_lineups():
-    file_paths = ['football_data/raw_data/kaggle-data/Match_1.csv', 'football_data/raw_data/kaggle-data/Match_2.csv']
-
-    for file_path in file_paths:
-        with open(file_path, 'r') as match_file:
-            reader = csv.reader(match_file)
-
-            # Skip headers line
-            next(reader)
-
-            for row in reader:
-                read_lineups(row)
-
-
-def read_lineups(row):
-    home_player_index = 56
-    away_player_index = home_player_index + 11
-    home_player_pos_index = 34
-    away_player_pos_index = home_player_pos_index + 11
-    try:
-        home_team = Team.objects.get(kaggle_api_id=row[8])
-    except Team.DoesNotExist:
-        return
-    away_team = Team.objects.get(kaggle_api_id=row[9])
-    date = datetime.datetime.strptime(row[6], '%d/%m/%Y %H:%M')
-
-    try:
-        match = Match.objects.get(date=date, home_team=home_team, away_team=away_team)
-    except Match.DoesNotExist:
-        raise Exception('{h} v {a} {d} does not exist'.format(
-            h=home_team,
-            a=away_team,
-            d=date,
-        ))
-    for num in range(0, 11):
-        try:
-            home_player = Player.objects.get(kaggle_api_id=row[home_player_index + num])
-            setattr(match, 'home_player_{n}'.format(n=num + 1), home_player)
-            home_player.has_played_match = True
-            home_player.save()
-        except ValueError:
-            pass
-        try:
-            away_player = Player.objects.get(kaggle_api_id=row[away_player_index + num])
-            setattr(match, 'away_player_{n}'.format(n=num + 1), away_player)
-            away_player.has_played_match = True
-            away_player.save()
-        except ValueError:
-            pass
-        setattr(match, 'home_player_{n}_pos'.format(n=num + 1), row[home_player_pos_index + num])
-        setattr(match, 'away_player_{n}_pos'.format(n=num + 1), row[away_player_pos_index + num])
-        match.save()
-
-
-def remove_excess_players():
-    """
-    The Player.csv dataset contains players from before my scope and from leagues outside my scope that must be removed
-    """
-    Player.objects.filter(has_played_match=False).all().delete()
-
-
-def import_betting_data():
-    file_path = 'football_data/raw_data/football-data-co-uk/'
-    leagues = [
-        ('premier_league/', team_names_map.PREMIER_LEAGUE),
-        ('bundesliga/', team_names_map.BUNDESLIGA),
-        ('la_liga/', team_names_map.LA_LIGA),
-        ('ligue_un/', team_names_map.LIGUE_UN),
-        ('serie_a/', team_names_map.SERIE_A),
-    ]
-
-    seasons = [
-        '2011-2012.csv',
-        '2012-2013.csv',
-        '2013-2014.csv',
-        '2014-2015.csv',
-        '2015-2016.csv',
-    ]
-
-    for league_name in leagues:
-        print(league_name[0])
-        league_path = league_name[0]
-        league_teams = league_name[1]
-
-        for season in seasons:
-            with open(file_path + league_path + season, 'r') as match_file:
-                reader = csv.reader(match_file)
-
-                headers = next(reader)
-                bet_brain_index = headers.index('BbMxH')
-
-                for row in reader:
-                    home_team = Team.objects.get(name=team_names_map.match_team_by_league(row[2], league_teams))
-                    away_team = Team.objects.get(name=team_names_map.match_team_by_league(row[3], league_teams))
-                    date = datetime.datetime.strptime(row[1], '%d/%m/%y')
-
-                    try:
-                        match = Match.objects.get(
-                            date__year=date.year,
-                            date__month=date.month,
-                            date__day=date.day,
-                            home_team=home_team,
-                            away_team=away_team
-                        )
-
-                        match.home_win_max_odds = row[bet_brain_index]
-                        match.home_win_average_odds = row[bet_brain_index + 1]
-                        match.draw_max_odds = row[bet_brain_index + 2]
-                        match.draw_average_odds = row[bet_brain_index + 3]
-                        match.away_win_max_odds = row[bet_brain_index + 4]
-                        match.away_win_average_odds = row[bet_brain_index + 5]
-
-                        match.save()
-
-                    except Match.DoesNotExist:
-                        raise Exception('{h} v {a} {d} does not exist'.format(
-                            h=home_team,
-                            a=away_team,
-                            d=date,
-                        ))
-
-
 def run():
-    # print('Creating leagues...')
-    # create_leagues()
+    print('Creating leagues...')
+    create_leagues()
     print('Importing teams...')
     import_teams()
-    # print('Importing stadiums...')
-    # import_stadiums()
-    # print('Importing players...')
-    # import_players()
     print('Importing matches...')
     import_matches()
-    # print('Importing lineups...')
-    # import_lineups()
-    # print('Removing excess players...')
-    # remove_excess_players()
-    # print('Importing betting data...')
-    # import_betting_data()

@@ -1,213 +1,22 @@
 from django.db import models
 from django.core.cache import cache
-
+from django.conf import settings
+from django.contrib.auth.models import User
+from django.dispatch import receiver
+from django.db.models.signals import post_save
+from rest_framework.authtoken.models import Token
 from django_countries.fields import CountryField
-from geopy.distance import distance
-from sklearn import tree
 import pandas as pd
 
 from football_data.constants import MACHINE_LEARNING_ALGORITHM_CHOICES, MACHINE_LEARNING_ALGORITHMS
 
 
-class League(models.Model):
-    name = models.CharField(max_length=100, unique=True)
-    country = CountryField()
-
-    def __str__(self):
-        return self.name
-
-
-class Team(models.Model):
-    name = models.CharField(max_length=100, unique=True)
-    league = models.ForeignKey(League, related_name='teams')
-    kaggle_api_id = models.IntegerField()
-
-    def __str__(self):
-        return self.name
-
-    class Meta:
-        ordering = ['league', 'name']
-
-
-class Stadium(models.Model):
-    name = models.CharField(max_length=100)
-    lat = models.DecimalField(max_digits=9, decimal_places=6)
-    lng = models.DecimalField(max_digits=9, decimal_places=6)
-    team = models.ForeignKey(Team, related_name='stadiums')
-    capacity = models.IntegerField()
-    start_date = models.DateField(blank=True, null=True)
-    end_date = models.DateField(blank=True, null=True)
-
-    def __str__(self):
-        return self.name
-
-    def distance_to(self, opponent_stadium):
-        location = (self.lat, self.lng)
-        opponent_location = (opponent_stadium.lat, opponent_stadium.lng)
-        return distance(location, opponent_location)
-
-    def is_current_stadium(self, match_date):
-        if self.end_date is not None:
-            if self.start_date is not None:
-                return self.end_date > match_date > self.end_date
-            return self.end_date > match_date
-
-        return True
-
-    def attendance_percentage(self, attendance):
-        return attendance / self.capacity * 100
-
-    class Meta:
-        ordering = ['team', 'start_date']
-
-
-class Player(models.Model):
-    name = models.CharField(max_length=100)
-    kaggle_api_id = models.IntegerField(help_text="An ID field used by the Kaggle dataset used in this project")
-    date_of_birth = models.DateField()
-    height = models.DecimalField(max_digits=5, decimal_places=2)
-    weight = models.DecimalField(max_digits=5, decimal_places=2)
-
-    has_played_match = models.BooleanField(default=False)
-
-    def __str__(self):
-        return self.name
-
-
-class Match(models.Model):
-    date = models.DateTimeField()
-    home_team = models.ForeignKey(Team, related_name='home_matches')
-    away_team = models.ForeignKey(Team, related_name='away_matches')
-    full_time_home_goals = models.PositiveSmallIntegerField()
-    full_time_away_goals = models.PositiveSmallIntegerField()
-    half_time_home_goals = models.PositiveSmallIntegerField()
-    half_time_away_goals = models.PositiveSmallIntegerField()
-    full_time_result = models.CharField(
-        max_length=1,
-        choices=[
-            ('H', 'Home win'),
-            ('D', 'Draw'),
-            ('A', 'Away win')
-        ]
-    )
-    half_time_result = models.CharField(
-        max_length=1,
-        choices=[
-            ('H', 'Home win'),
-            ('D', 'Draw'),
-            ('A', 'Away win')
-        ]
-    )
-
-    # Stats
-    home_possession = models.DecimalField(max_digits=3, decimal_places=1, null=True, blank=True)
-    away_possession = models.DecimalField(max_digits=3, decimal_places=1, null=True, blank=True)
-    home_total_shots = models.PositiveSmallIntegerField()
-    away_total_shots = models.PositiveSmallIntegerField()
-    home_shots_on_target = models.PositiveSmallIntegerField()
-    away_shots_on_target = models.PositiveSmallIntegerField()
-    home_corners = models.PositiveSmallIntegerField()
-    away_corners = models.PositiveSmallIntegerField()
-    home_fouls_committed = models.PositiveSmallIntegerField()
-    away_fouls_committed = models.PositiveSmallIntegerField()
-    home_offsides = models.PositiveSmallIntegerField(null=True, blank=True)
-    away_offsides = models.PositiveSmallIntegerField(null=True, blank=True)
-    home_yellow_cards = models.PositiveSmallIntegerField()
-    away_yellow_cards = models.PositiveSmallIntegerField()
-    home_red_cards = models.PositiveSmallIntegerField()
-    away_red_cards = models.PositiveSmallIntegerField()
-
-    # Home Lineup
-    home_player_1 = models.ForeignKey(Player, related_name='home_matches_p1', null=True, blank=True, editable=False)
-    home_player_2 = models.ForeignKey(Player, related_name='home_matches_p2', null=True, blank=True, editable=False)
-    home_player_3 = models.ForeignKey(Player, related_name='home_matches_p3', null=True, blank=True, editable=False)
-    home_player_4 = models.ForeignKey(Player, related_name='home_matches_p4', null=True, blank=True, editable=False)
-    home_player_5 = models.ForeignKey(Player, related_name='home_matches_p5', null=True, blank=True, editable=False)
-    home_player_6 = models.ForeignKey(Player, related_name='home_matches_p6', null=True, blank=True, editable=False)
-    home_player_7 = models.ForeignKey(Player, related_name='home_matches_p7', null=True, blank=True, editable=False)
-    home_player_8 = models.ForeignKey(Player, related_name='home_matches_p8', null=True, blank=True, editable=False)
-    home_player_9 = models.ForeignKey(Player, related_name='home_matches_p9', null=True, blank=True, editable=False)
-    home_player_10 = models.ForeignKey(Player, related_name='home_matches_p10', null=True, blank=True, editable=False)
-    home_player_11 = models.ForeignKey(Player, related_name='home_matches_p11', null=True, blank=True, editable=False)
-
-    home_player_1_pos = models.PositiveSmallIntegerField(blank=True, null=True)
-    home_player_2_pos = models.PositiveSmallIntegerField(blank=True, null=True)
-    home_player_3_pos = models.PositiveSmallIntegerField(blank=True, null=True)
-    home_player_4_pos = models.PositiveSmallIntegerField(blank=True, null=True)
-    home_player_5_pos = models.PositiveSmallIntegerField(blank=True, null=True)
-    home_player_6_pos = models.PositiveSmallIntegerField(blank=True, null=True)
-    home_player_7_pos = models.PositiveSmallIntegerField(blank=True, null=True)
-    home_player_8_pos = models.PositiveSmallIntegerField(blank=True, null=True)
-    home_player_9_pos = models.PositiveSmallIntegerField(blank=True, null=True)
-    home_player_10_pos = models.PositiveSmallIntegerField(blank=True, null=True)
-    home_player_11_pos = models.PositiveSmallIntegerField(blank=True, null=True)
-
-    # Away Lineup
-    away_player_1 = models.ForeignKey(Player, related_name='away_matches_p1', null=True, blank=True, editable=False)
-    away_player_2 = models.ForeignKey(Player, related_name='away_matches_p2', null=True, blank=True, editable=False)
-    away_player_3 = models.ForeignKey(Player, related_name='away_matches_p3', null=True, blank=True, editable=False)
-    away_player_4 = models.ForeignKey(Player, related_name='away_matches_p4', null=True, blank=True, editable=False)
-    away_player_5 = models.ForeignKey(Player, related_name='away_matches_p5', null=True, blank=True, editable=False)
-    away_player_6 = models.ForeignKey(Player, related_name='away_matches_p6', null=True, blank=True, editable=False)
-    away_player_7 = models.ForeignKey(Player, related_name='away_matches_p7', null=True, blank=True, editable=False)
-    away_player_8 = models.ForeignKey(Player, related_name='away_matches_p8', null=True, blank=True, editable=False)
-    away_player_9 = models.ForeignKey(Player, related_name='away_matches_p9', null=True, blank=True, editable=False)
-    away_player_10 = models.ForeignKey(Player, related_name='away_matches_p10', null=True, blank=True, editable=False)
-    away_player_11 = models.ForeignKey(Player, related_name='away_matches_p11', null=True, blank=True, editable=False)
-
-    away_player_1_pos = models.PositiveSmallIntegerField(blank=True, null=True)
-    away_player_2_pos = models.PositiveSmallIntegerField(blank=True, null=True)
-    away_player_3_pos = models.PositiveSmallIntegerField(blank=True, null=True)
-    away_player_4_pos = models.PositiveSmallIntegerField(blank=True, null=True)
-    away_player_5_pos = models.PositiveSmallIntegerField(blank=True, null=True)
-    away_player_6_pos = models.PositiveSmallIntegerField(blank=True, null=True)
-    away_player_7_pos = models.PositiveSmallIntegerField(blank=True, null=True)
-    away_player_8_pos = models.PositiveSmallIntegerField(blank=True, null=True)
-    away_player_9_pos = models.PositiveSmallIntegerField(blank=True, null=True)
-    away_player_10_pos = models.PositiveSmallIntegerField(blank=True, null=True)
-    away_player_11_pos = models.PositiveSmallIntegerField(blank=True, null=True)
-
-    home_win_average_odds = models.FloatField(blank=True, null=True)
-    draw_average_odds = models.FloatField(blank=True, null=True)
-    away_win_average_odds = models.FloatField(blank=True, null=True)
-    home_win_max_odds = models.FloatField(blank=True, null=True)
-    draw_max_odds = models.FloatField(blank=True, null=True)
-    away_win_max_odds = models.FloatField(blank=True, null=True)
-
-    def __str__(self):
-        return '{h} v {a}'.format(h=self.home_team, a=self.away_team)
-
-    class Meta:
-        verbose_name_plural = 'Matches'
-
-
-class PredictiveModel(models.Model):
-    name = models.CharField(max_length=100)
-    algorithm = models.CharField(max_length=100)
-
-    model = None
-
-    @property
-    def model(self):
-        return self.model
-
-
-class DecisionTreeModel(PredictiveModel):
-    model = tree.DecisionTreeClassifier()
-
-
-class Sport(models.Model):
-    name = models.CharField(max_length=50)
-
-    def __str__(self):
-        return self.name
-
-
 class MachineLearningModel(models.Model):
     algorithm = models.CharField(max_length=50, choices=MACHINE_LEARNING_ALGORITHM_CHOICES)
-    sport = models.ForeignKey(to=Sport, related_name='models')
-    training_data = models.FileField(upload_to='training_data'.format(sport.name))
-    target_feature_name = models.CharField(max_length=60, help_text='The name of the target feature column as it appears in the training data')
+    training_data = models.FileField(upload_to='training_data')
+    target_feature_name = models.CharField(max_length=60, help_text='The name of the target feature column as it '
+                                                                    'appears in the training data')
+    default = models.BooleanField(default=False, help_text='Is this the default model? (There can only be one)')
 
     @property
     def model(self):
@@ -389,8 +198,96 @@ class TrainingDrill(models.Model):
 
     name = models.CharField(max_length=70)
     description = models.TextField()
-    sport = models.ForeignKey(to=Sport, related_name='training_drills')
     feature = models.ForeignKey(to=DataFeature, related_name='training_drills')
 
     def __str__(self):
         return self.name
+
+
+class Coach(models.Model):
+    user = models.ForeignKey(User)
+    predictive_model = models.ForeignKey(MachineLearningModel, blank=True, null=True)
+
+    @property
+    def get_predictive_model(self):
+        return cache.get('{}:{}'.format(self.user.username, self.predictive_model.algorithm))
+
+    def __str__(self):
+        return self.user.username
+
+
+# Receiver to create an auth token whenever a user is created
+@receiver(post_save, sender=settings.AUTH_USER_MODEL)
+def create_auth_token(sender, instance=None, created=False, **kwargs):
+    if created:
+        Token.objects.create(user=instance)
+
+
+class League(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    country = CountryField()
+
+    def __str__(self):
+        return self.name
+
+
+class Team(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    league = models.ForeignKey(League, related_name='teams', blank=True, null=True)
+    coach = models.OneToOneField(Coach, blank=True, null=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        ordering = ['league', 'name']
+
+
+class Match(models.Model):
+    date = models.DateTimeField()
+    home_team = models.ForeignKey(Team, related_name='home_matches')
+    away_team = models.ForeignKey(Team, related_name='away_matches')
+    full_time_home_goals = models.PositiveSmallIntegerField()
+    full_time_away_goals = models.PositiveSmallIntegerField()
+    half_time_home_goals = models.PositiveSmallIntegerField()
+    half_time_away_goals = models.PositiveSmallIntegerField()
+    full_time_result = models.CharField(
+        max_length=1,
+        choices=[
+            ('H', 'Home win'),
+            ('D', 'Draw'),
+            ('A', 'Away win')
+        ]
+    )
+    half_time_result = models.CharField(
+        max_length=1,
+        choices=[
+            ('H', 'Home win'),
+            ('D', 'Draw'),
+            ('A', 'Away win')
+        ]
+    )
+
+    # Stats
+    home_possession = models.DecimalField(max_digits=3, decimal_places=1, null=True, blank=True)
+    away_possession = models.DecimalField(max_digits=3, decimal_places=1, null=True, blank=True)
+    home_total_shots = models.PositiveSmallIntegerField()
+    away_total_shots = models.PositiveSmallIntegerField()
+    home_shots_on_target = models.PositiveSmallIntegerField()
+    away_shots_on_target = models.PositiveSmallIntegerField()
+    home_corners = models.PositiveSmallIntegerField()
+    away_corners = models.PositiveSmallIntegerField()
+    home_fouls_committed = models.PositiveSmallIntegerField()
+    away_fouls_committed = models.PositiveSmallIntegerField()
+    home_yellow_cards = models.PositiveSmallIntegerField()
+    away_yellow_cards = models.PositiveSmallIntegerField()
+    home_red_cards = models.PositiveSmallIntegerField()
+    away_red_cards = models.PositiveSmallIntegerField()
+
+    training_data = models.BooleanField(default=False)
+
+    def __str__(self):
+        return '{h} v {a}'.format(h=self.home_team, a=self.away_team)
+
+    class Meta:
+        verbose_name_plural = 'Matches'
