@@ -10,7 +10,7 @@ class CoachCreationTests(APITestCase):
     token_auth_url = 'http://localhost:8000/api/api-token-auth/'
 
     def setUp(self):
-        MachineLearningModel.objects.create(
+        self.ml_model = MachineLearningModel.objects.create(
             algorithm='LogisticRegression',
             training_data='training_data/individual_teams.csv',
             target_feature_name='won_match',
@@ -50,3 +50,15 @@ class CoachCreationTests(APITestCase):
         response = self.client.post(self.token_auth_url, data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertContains(response, 'token')
+
+    def test_coach_assigned_ml_model(self):
+
+        data = {
+            'username': 'testcoach',
+            'password': 'testpass',
+        }
+
+        # Make request to create Coach
+        self.client.post(self.coaches_url, data)
+
+        self.assertEqual(Coach.objects.get().predictive_model, self.ml_model)

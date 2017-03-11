@@ -16,7 +16,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         user = User.objects.create_user(**validated_data)
-        default_predictive_model = MachineLearningModel.objects.get()
+        default_predictive_model = MachineLearningModel.objects.get(default=True)
         Coach.objects.create(user=user, predictive_model=default_predictive_model)
         return user
 
