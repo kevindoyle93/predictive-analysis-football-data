@@ -1,4 +1,5 @@
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework import generics
@@ -66,7 +67,6 @@ class TeamMatchesList(generics.ListAPIView):
     def get_queryset(self):
         team = Team.objects.get(pk=self.kwargs['pk'])
         matches = Match.objects.filter(Q(home_team=team) | Q(away_team=team))
-        matches = matches.exclude(home_possession__isnull=True)
         return matches
 
     def paginate_queryset(self, queryset):
@@ -190,10 +190,17 @@ class MatchDetail(generics.RetrieveAPIView):
 
 
 @csrf_exempt
+@api_view(['POST'])
 def generate_prediction(request):
-    ml_model = MachineLearningModel.objects.get()
+    ml_model = MachineLearningModel.objects.get(default=True)
     columns = ml_model.training_columns
     column_names = ml_model.descriptive_feature_names
+
+    if hasattr(request.user, 'coach'):
+        app_match = {}
+        for feature in ml_model.features.all():
+            app_match[feature.name] = feature.from_string(request.POST[feature.name])
+        AppMatch.objects.create(coach=request.user.coach, **app_match)
 
     match_data = [
         column.from_string(request.POST[column.name]) for column in columns
