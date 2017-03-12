@@ -180,7 +180,7 @@ class DataFeature(models.Model):
         return altered_value
 
     def __str__(self):
-        return '{}: {}'.format(self.display_name, self.model.sport)
+        return '{}: {}'.format(self.display_name, self.model)
 
     class Meta:
         unique_together = ('model', 'column_index')
