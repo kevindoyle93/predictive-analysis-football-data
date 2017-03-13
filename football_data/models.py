@@ -125,13 +125,15 @@ class DataFeature(models.Model):
             return int(value)
 
     def generate_tactical_advice_card(self, value, initial_probability):
+        win_percentage_increase = (value - initial_probability) * 100
+
         title = '{} {}'.format(
             'Increase' if self.positive_weight else 'Decrease',
             self.display_name
         )
 
         body = 'Increases probability of a win by {}% to {}%'.format(
-            format((value - initial_probability) * 100, '.2f'),
+            format(win_percentage_increase, '.2f'),
             format(value * 100, '.2f'),
         )
 
@@ -140,7 +142,8 @@ class DataFeature(models.Model):
         return {
             'title': title,
             'body': body,
-            'drills': drills
+            'drills': drills,
+            'win_percentage_increase': win_percentage_increase
         }
 
     def make_tactical_alteration(self, value):
