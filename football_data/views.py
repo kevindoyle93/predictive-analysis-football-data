@@ -232,7 +232,7 @@ def generate_prediction(request):
         win_probability = model.predict_proba(altered_match_data)[0][1]
         tactical_advice.append(feature.generate_tactical_advice_card(win_probability, initial_prediction[1]))
 
-    tactical_advice.sort(key=lambda x: x['win_percentage_increase'])
+    tactical_advice.sort(key=lambda x: x['win_percentage_increase'], reverse=True)
 
     # Return prediction for now, this will change to returning the tactical suggestion
     data = {
