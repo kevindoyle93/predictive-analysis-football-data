@@ -8,6 +8,11 @@ class CoachSerializer(serializers.ModelSerializer):
         model = Coach
 
 
+class AppMatchSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AppMatch
+
+
 class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
