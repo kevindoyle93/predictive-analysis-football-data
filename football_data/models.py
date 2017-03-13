@@ -298,6 +298,7 @@ class Match(models.Model):
 
 class AppMatch(models.Model):
     coach = models.ForeignKey(Coach, related_name='matches')
+    coach_team_is_home_team = models.BooleanField(default=True)
     date = models.DateTimeField()
     home_team = models.CharField(max_length=30)
     away_team = models.CharField(max_length=30)
