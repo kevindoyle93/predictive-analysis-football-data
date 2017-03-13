@@ -125,13 +125,15 @@ class DataFeature(models.Model):
             return int(value)
 
     def generate_tactical_advice_card(self, value, initial_probability):
+        win_percentage_increase = (value - initial_probability) * 100
+
         title = '{} {}'.format(
             'Increase' if self.positive_weight else 'Decrease',
             self.display_name
         )
 
         body = 'Increases probability of a win by {}% to {}%'.format(
-            format((value - initial_probability) * 100, '.2f'),
+            format(win_percentage_increase, '.2f'),
             format(value * 100, '.2f'),
         )
 
@@ -140,7 +142,8 @@ class DataFeature(models.Model):
         return {
             'title': title,
             'body': body,
-            'drills': drills
+            'drills': drills,
+            'win_percentage_increase': win_percentage_increase
         }
 
     def make_tactical_alteration(self, value):
@@ -294,23 +297,33 @@ class Match(models.Model):
 
 
 class AppMatch(models.Model):
-    coach = models.ForeignKey(Coach)
-    won_match = models.BooleanField()
-    at_home = models.BooleanField()
-    winning_at_half_time = models.BooleanField()
-    half_time_goals = models.PositiveSmallIntegerField()
-    opp_half_time_goals = models.PositiveSmallIntegerField()
-    possession = models.DecimalField(max_digits=3, decimal_places=1)
-    opp_possession = models.DecimalField(max_digits=3, decimal_places=1)
-    total_shots = models.PositiveSmallIntegerField()
-    opp_total_shots = models.PositiveSmallIntegerField()
-    shots_on_target = models.PositiveSmallIntegerField()
-    opp_shots_on_target = models.PositiveSmallIntegerField()
-    corners = models.PositiveSmallIntegerField()
-    opp_corners = models.PositiveSmallIntegerField()
-    fouls = models.PositiveSmallIntegerField()
-    opp_fouls = models.PositiveSmallIntegerField()
-    yellow_cards = models.PositiveSmallIntegerField()
-    opp_yellow_cards = models.PositiveSmallIntegerField()
-    red_cards = models.PositiveSmallIntegerField()
-    opp_red_cards = models.PositiveSmallIntegerField()
+    coach = models.ForeignKey(Coach, related_name='matches')
+    date = models.DateTimeField()
+    home_team = models.CharField(max_length=30)
+    away_team = models.CharField(max_length=30)
+    full_time_home_goals = models.PositiveSmallIntegerField()
+    full_time_away_goals = models.PositiveSmallIntegerField()
+    half_time_home_goals = models.PositiveSmallIntegerField()
+    half_time_away_goals = models.PositiveSmallIntegerField()
+
+    # Stats
+    home_possession = models.DecimalField(max_digits=3, decimal_places=1, null=True, blank=True)
+    away_possession = models.DecimalField(max_digits=3, decimal_places=1, null=True, blank=True)
+    home_total_shots = models.PositiveSmallIntegerField()
+    away_total_shots = models.PositiveSmallIntegerField()
+    home_shots_on_target = models.PositiveSmallIntegerField()
+    away_shots_on_target = models.PositiveSmallIntegerField()
+    home_corners = models.PositiveSmallIntegerField()
+    away_corners = models.PositiveSmallIntegerField()
+    home_fouls = models.PositiveSmallIntegerField()
+    away_fouls = models.PositiveSmallIntegerField()
+    home_yellow_cards = models.PositiveSmallIntegerField()
+    away_yellow_cards = models.PositiveSmallIntegerField()
+    home_red_cards = models.PositiveSmallIntegerField()
+    away_red_cards = models.PositiveSmallIntegerField()
+
+    def __str__(self):
+        return '{} v {}'.format(self.home_team, self.away_team)
+
+    class Meta:
+        verbose_name_plural = 'Matches'

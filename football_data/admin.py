@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from football_data.models import League, Team, Match, MachineLearningModel, DataFeature, TrainingDrill, Coach
+from football_data.models import League, Team, Match, MachineLearningModel, DataFeature, TrainingDrill, Coach, AppMatch
 
 
 class LeagueAdmin(admin.ModelAdmin):
@@ -43,5 +43,11 @@ class CoachAdmin(admin.ModelAdmin):
         return obj.user.username
 
 admin.site.register(Coach, CoachAdmin)
+
+
+class AppMatchAdmin(admin.ModelAdmin):
+    list_display = ['home_team', 'away_team', 'coach', 'full_time_home_goals', 'full_time_away_goals']
+
+admin.site.register(AppMatch, AppMatchAdmin)
 
 admin.site.register(MachineLearningModel)

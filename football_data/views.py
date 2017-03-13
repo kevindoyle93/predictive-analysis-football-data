@@ -1,5 +1,6 @@
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.authentication import TokenAuthentication
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework import generics
@@ -12,6 +13,7 @@ from django.views.decorators.csrf import csrf_exempt
 import numpy as np
 
 from football_data.serializers import *
+from football_data.permissions import IsCoach
 from football_data.models import *
 
 
@@ -22,6 +24,7 @@ def api_root(request, format=None):
         'teams': reverse('team-list', request=request, format=format),
         'matches': reverse('match-list', request=request, format=format),
         'coaches': reverse('coaches-create', request=request, format=format),
+        'app-matches': reverse('app-matches', request=request, format=format),
     })
 
 
@@ -189,18 +192,24 @@ class MatchDetail(generics.RetrieveAPIView):
     serializer_class = MatchSerializer
 
 
+class AppMatchList(generics.ListCreateAPIView):
+    serializer_class = AppMatchSerializer
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated, IsCoach,)
+
+    def get_queryset(self):
+        return AppMatch.objects.filter(coach=self.request.user.coach)
+
+    def perform_create(self, serializer):
+        serializer.save(coach=self.request.user.coach)
+
+
 @csrf_exempt
 @api_view(['POST'])
 def generate_prediction(request):
     ml_model = MachineLearningModel.objects.get(default=True)
     columns = ml_model.training_columns
     column_names = ml_model.descriptive_feature_names
-
-    if hasattr(request.user, 'coach'):
-        app_match = {}
-        for feature in ml_model.features.all():
-            app_match[feature.name] = feature.from_string(request.POST[feature.name])
-        AppMatch.objects.create(coach=request.user.coach, **app_match)
 
     match_data = [
         column.from_string(request.POST[column.name]) for column in columns
@@ -222,6 +231,8 @@ def generate_prediction(request):
 
         win_probability = model.predict_proba(altered_match_data)[0][1]
         tactical_advice.append(feature.generate_tactical_advice_card(win_probability, initial_prediction[1]))
+
+    tactical_advice.sort(key=lambda x: x['win_percentage_increase'])
 
     # Return prediction for now, this will change to returning the tactical suggestion
     data = {
