@@ -9,6 +9,8 @@ class CoachSerializer(serializers.ModelSerializer):
 
 
 class AppMatchSerializer(serializers.ModelSerializer):
+    coach = serializers.PrimaryKeyRelatedField(allow_null=True, read_only=True)
+
     class Meta:
         model = AppMatch
 

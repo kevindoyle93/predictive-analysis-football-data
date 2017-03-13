@@ -200,6 +200,9 @@ class AppMatchList(generics.ListCreateAPIView):
     def get_queryset(self):
         return AppMatch.objects.filter(coach=self.request.user.coach)
 
+    def perform_create(self, serializer):
+        serializer.save(coach=self.request.user.coach)
+
 
 @csrf_exempt
 @api_view(['POST'])
