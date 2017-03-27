@@ -97,8 +97,6 @@ class TeamMatchSerializer(serializers.ModelSerializer):
             'away_corners',
             'home_fouls_committed',
             'away_fouls_committed',
-            'home_offsides',
-            'away_offsides',
             'home_yellow_cards',
             'away_yellow_cards',
             'home_red_cards',
