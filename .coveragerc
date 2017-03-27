@@ -1,0 +1,14 @@
+# .coveragerc to control coverage.py
+[run]
+branch = True
+
+omit =
+    # omit Django's manage.py
+    manage.py
+    # omit everything in predictive_football_analysis
+    predictive_football_analysis/*
+    # omit the data collection scripts
+    football_data/scripts/*
+
+[html]
+directory = coverage_html_report

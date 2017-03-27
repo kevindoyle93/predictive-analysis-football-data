@@ -10,3 +10,7 @@ production.env
 .env
 .vagrant/
 fyp-uploaded-files/
+
+# Test coverage
+.coverage
+coverage_html_report/
