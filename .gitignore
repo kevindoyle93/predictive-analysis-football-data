@@ -13,4 +13,4 @@ fyp-uploaded-files/
 
 # Test coverage
 .coverage
-htmlcov/
+coverage_html_report/
