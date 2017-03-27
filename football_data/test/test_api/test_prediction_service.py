@@ -42,42 +42,11 @@ class PredictionServiceTests(APITestCase):
 
     def test_anonymous_user_prediction(self):
         """
-        Any non-registered user should be able to post a match and receive tactical advice
+        Any user (registered or not) should be able to post a match and receive tactical advice
         """
         response = self.client.post(self.predictions_url, self.match_data)
         results = response.json()
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIn('tactical_advice', results)
-        self.assertIn('win_probability', results)
-        self.assertIn('not_win_probability', results)
-        self.assertIn('result', results)
-
-    def test_registered_coach_prediction(self):
-        """
-        When a registered coach requests a prediction, the match data should be persisted
-        """
-        data = {
-            'username': 'testcoach',
-            'password': 'testpass',
-        }
-        # Create Coach
-        self.client.post(self.coaches_url, data)
-
-        # Get auth token for coach
-        response = self.client.post(self.token_auth_url, data)
-        token = response.json()['token']
-
-        # Add the received token to the auth header
-        self.client.credentials(HTTP_AUTHORIZATION='Token {}'.format(token))
-        response = self.client.post(
-            self.predictions_url,
-            self.match_data,
-            authentication='Token {}'.format(token)
-        )
-        results = response.json()
-
-        self.assertEqual(AppMatch.objects.count(), 1)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn('tactical_advice', results)
         self.assertIn('win_probability', results)
