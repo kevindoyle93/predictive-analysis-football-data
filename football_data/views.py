@@ -18,7 +18,7 @@ from football_data.models import *
 
 
 @api_view(['GET'])
-def api_root(request, format=None):
+def api_root(request, format=None):  # pragma: no cover
     return Response({
         'leagues': reverse('league-list', request=request, format=format),
         'teams': reverse('team-list', request=request, format=format),
