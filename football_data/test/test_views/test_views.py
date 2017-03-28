@@ -1,9 +1,11 @@
 from datetime import datetime
 
+from django.contrib.auth.models import User
+from django.urls import reverse
 from rest_framework.test import APITestCase, APIRequestFactory
 
-from football_data.models import League, Team, Match
-from football_data.views import TeamMatchesList
+from football_data.models import League, Team, Match, Coach, AppMatch
+from football_data.views import TeamMatchesList, AppMatchList
 
 
 class ViewTests(APITestCase):
@@ -53,3 +55,47 @@ class ViewTests(APITestCase):
         request = APIRequestFactory().get(url)
         response = view(request, pk=self.team_1.pk)
         self.assertEqual(len(response.data), 2)
+
+    def test_app_match_list_retrieve(self):
+        """
+        The app match list view should retrieve all and only the matches for the logged in coach
+        """
+        stats = self.base_match_stats.copy()
+
+        # To fix field name inconsistencies
+        stats['home_fouls'] = stats.pop('home_fouls_committed')
+        stats['away_fouls'] = stats.pop('away_fouls_committed')
+        stats.pop('half_time_result')
+        stats.pop('full_time_result')
+
+        coach = Coach.objects.create(user=User.objects.create_user(username='coach', password='pass'))
+        AppMatch.objects.create(coach=coach, home_team='home team', away_team='away team', **stats)
+
+        url = reverse('app-matches')
+
+        self.client.login(username='coach', password='pass')
+        res = self.client.get(url)
+        self.assertEqual(len(res.json()['results']), 1)
+        self.assertEqual(res.json()['results'][0]['coach'], coach.pk)
+
+    def test_app_match_list_create(self):
+        """
+        The app match create view should assign the logged in coach to a match
+        """
+        stats = self.base_match_stats.copy()
+
+        # To fix field name inconsistencies
+        stats['home_fouls'] = stats.pop('home_fouls_committed')
+        stats['away_fouls'] = stats.pop('away_fouls_committed')
+        stats['home_team'] = 'home'
+        stats['away_team'] = 'away'
+
+        coach = Coach.objects.create(user=User.objects.create_user(username='coach', password='pass'))
+
+        url = reverse('app-matches')
+
+        self.client.login(username='coach', password='pass')
+        res = self.client.post(url, stats)
+        print(res.data)
+        self.assertEqual(res.status_code, 201)
+        self.assertEqual(res.data['coach'], coach.pk)

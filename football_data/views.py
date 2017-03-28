@@ -1,6 +1,6 @@
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.authentication import TokenAuthentication
+from rest_framework.authentication import TokenAuthentication, SessionAuthentication
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework import generics
@@ -194,7 +194,7 @@ class MatchDetail(generics.RetrieveAPIView):
 
 class AppMatchList(generics.ListCreateAPIView):
     serializer_class = AppMatchSerializer
-    authentication_classes = (TokenAuthentication,)
+    authentication_classes = (TokenAuthentication, SessionAuthentication,)
     permission_classes = (IsAuthenticated, IsCoach,)
 
     def get_queryset(self):
