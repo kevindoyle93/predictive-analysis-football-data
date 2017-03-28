@@ -33,7 +33,7 @@ urlpatterns = [
     url(r'coaches/$',
         views.CoachCreate.as_view(),
         name='coaches-create'),
-    url(r'coaches/matches$',
+    url(r'^coaches/matches/$',
         views.AppMatchList.as_view(),
         name='app-matches'),
 ]

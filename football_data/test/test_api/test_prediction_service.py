@@ -40,6 +40,12 @@ class PredictionServiceTests(APITestCase):
             default=True,
         )
 
+        TrainingDrill.objects.create(
+            name='test drill',
+            description='test drill description',
+            feature=self.ml_model.training_columns.all()[0],
+        )
+
     def test_anonymous_user_prediction(self):
         """
         Any user (registered or not) should be able to post a match and receive tactical advice
