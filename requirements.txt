@@ -3,7 +3,6 @@ backports-abc==0.5
 colorama==0.3.7
 coverage==4.3.4
 cycler==0.10.0
-Cython==0.25.2
 decorator==4.0.10
 dj-database-url==0.4.2
 Django==1.10.2
@@ -17,13 +16,7 @@ djangorestframework==3.4.7
 entrypoints==0.2.2
 geopy==1.11.0
 gunicorn==19.7.1
-ipykernel==4.5.0
-ipython==5.1.0
-ipython-genutils==0.1.0
-Jinja2==2.8
 jsonschema==2.5.1
-jupyter-client==4.4.0
-jupyter-core==4.2.0
 lxml==3.6.4
 MarkupSafe==0.23
 matplotlib==1.5.3
@@ -44,7 +37,6 @@ python-memcached==1.58
 pytz==2016.7
 pyzmq==15.4.0
 requests==2.11.1
-seaborn==0.7.1
 simplegeneric==0.8.1
 six==1.10.0
 terminado==0.6
