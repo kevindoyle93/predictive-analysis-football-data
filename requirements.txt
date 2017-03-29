@@ -3,6 +3,7 @@ backports-abc==0.5
 colorama==0.3.7
 coverage==4.3.4
 cycler==0.10.0
+Cython==0.25.2
 decorator==4.0.10
 dj-database-url==0.4.2
 Django==1.10.2
