@@ -1,6 +1,5 @@
 import os
 
-import dj_database_url
 from getenv import env
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
