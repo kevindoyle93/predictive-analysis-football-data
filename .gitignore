@@ -5,6 +5,7 @@ pip-selfcheck.json
 /lib
 /share
 db.sqlite3
+static/
 .idea/
 production.env
 # .env
