@@ -7,7 +7,6 @@ pip-selfcheck.json
 db.sqlite3
 static/
 .idea/
-production.env
 .env
 .vagrant/
 fyp-uploaded-files/
