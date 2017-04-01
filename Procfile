@@ -1,1 +1,0 @@
-web: gunicorn predictive_football_analysis.wsgi --log-file -
