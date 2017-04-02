@@ -136,7 +136,7 @@ class DataFeature(models.Model):
         title = '{} {} by {}'.format(
             'Increase' if self.positive_weight else 'Decrease',
             self.display_name,
-            alteration
+            alteration if type(alteration) == int else format(alteration, '.2f'),
         )
 
         body = 'Increases probability of a win by {}% to {}%'.format(
