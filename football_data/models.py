@@ -60,6 +60,8 @@ class MachineLearningModel(models.Model):
                     'positive_weight': weights[i] >= 0,
                     'mean': training_data[training_columns[i]].mean(),
                     'std_dev': training_data[training_columns[i]].std(),
+                    'min_alteration': max(training_data[training_columns[i]].mean() / 10, 1),
+                    'max_alteration': max(training_data[training_columns[i]].std() * 2, 2),
                 }
             )
             feature.save()
@@ -75,6 +77,8 @@ class MachineLearningModel(models.Model):
                 'mean': training_data[self.target_feature_name].mean(),
                 'std_dev': training_data[self.target_feature_name].std(),
                 'data_type': training_data[self.target_feature_name].dtype.name,
+                'min_alteration': max(training_data[self.target_feature_name].mean() / 10, 1),
+                'max_alteration': max(training_data[self.target_feature_name].std() * 2, 2),
             }
         )
         feature.save()
@@ -115,6 +119,8 @@ class DataFeature(models.Model):
     positive_weight = models.NullBooleanField()
     mean = models.FloatField(default=0)
     std_dev = models.FloatField(default=0)
+    min_alteration = models.FloatField(default=0, help_text='The minimum achievable alteration for this feature')
+    max_alteration = models.FloatField(default=0, help_text='The maximum achievable alteration for this feature')
 
     def from_string(self, value):
         if self.data_type == 'bool':
