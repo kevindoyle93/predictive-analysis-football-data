@@ -7,6 +7,7 @@ from django.db.models.signals import post_save
 from rest_framework.authtoken.models import Token
 from django_countries.fields import CountryField
 import pandas as pd
+from scipy.stats import norm
 
 from football_data.constants import MACHINE_LEARNING_ALGORITHM_CHOICES, MACHINE_LEARNING_ALGORITHMS
 
@@ -60,6 +61,8 @@ class MachineLearningModel(models.Model):
                     'positive_weight': weights[i] >= 0,
                     'mean': training_data[training_columns[i]].mean(),
                     'std_dev': training_data[training_columns[i]].std(),
+                    'min_alteration': max(training_data[training_columns[i]].mean() / 10, 1),
+                    'max_alteration': max(training_data[training_columns[i]].std() * 2, 2),
                 }
             )
             feature.save()
@@ -75,6 +78,8 @@ class MachineLearningModel(models.Model):
                 'mean': training_data[self.target_feature_name].mean(),
                 'std_dev': training_data[self.target_feature_name].std(),
                 'data_type': training_data[self.target_feature_name].dtype.name,
+                'min_alteration': max(training_data[self.target_feature_name].mean() / 10, 1),
+                'max_alteration': max(training_data[self.target_feature_name].std() * 2, 2),
             }
         )
         feature.save()
@@ -97,7 +102,6 @@ class DataFeature(models.Model):
     Column of an Analytics Base Table (ABT)
 
     Data features are automatically added when a model is trained.
-
     """
     DATA_TYPE_CHOICES = (
         ('bool', 'Boolean'),
@@ -115,6 +119,8 @@ class DataFeature(models.Model):
     positive_weight = models.NullBooleanField()
     mean = models.FloatField(default=0)
     std_dev = models.FloatField(default=0)
+    min_alteration = models.FloatField(default=0, help_text='The minimum achievable alteration for this feature')
+    max_alteration = models.FloatField(default=0, help_text='The maximum achievable alteration for this feature')
 
     def from_string(self, value):
         if self.data_type == 'bool':
@@ -124,12 +130,13 @@ class DataFeature(models.Model):
         elif self.data_type == 'int64':
             return int(value)
 
-    def generate_tactical_advice_card(self, value, initial_probability):
+    def generate_tactical_advice_card(self, value, initial_probability, alteration):
         win_percentage_increase = (value - initial_probability) * 100
 
-        title = '{} {}'.format(
+        title = '{} {} by {}'.format(
             'Increase' if self.positive_weight else 'Decrease',
-            self.display_name
+            self.display_name,
+            alteration if type(alteration) == int else format(alteration, '.2f'),
         )
 
         body = 'Increases probability of a win by {}% to {}%'.format(
@@ -153,34 +160,32 @@ class DataFeature(models.Model):
         The magnitude of the alteration to a feature value must be viable. Tactical advice can only
         be suitable if the changes being suggested are actually achievable.
 
-        The maximum alteration is considered to be two standard deviations, and the min is one tenth of the mean. If
-        the max is calculated as less than 1 it will set as 2, and if the min is less than 1 it is set as 1.
+        The alteration is calculated based on the probability density function (pdf) for the current data feature.
+        The standard deviation is used as a base for achievable alterations and is transformed to an alteration value
+        by raising it to the power of the pdf of the value param. This ensures the highest alteration values occur
+        when the value param is closest to the mean, with alteration values getting lower as the value param moves
+        away from the mean.
 
-        The alteration is calculated as the standard deviation to the power of the number of standard deviations away
-        from the mean the value is. This means higher alterations for values significantly lower than the mean, and
-        lower alterations for values significantly higher than the mean.
-
-        TODO: Try using a sigmoid function to calculate the alteration.
+        This achieves the effect of providing more achievable alterations to teams performing poorly (i.e. a value
+        param significantly lower than the mean), and limiting the alterations for teams that are already performing
+        very well (i.e. a value param significantly higher than the mean).
 
         :param value: the value for this feature of the instance being altered
-        :return: the altered value for this feature
+        :return: the altered value for this feature, and the alteration made
         """
 
-        max_alteration = max(self.std_dev * 2, 2)
-        min_alteration = max(self.mean / 10, 1)
+        alterations_distribution = norm(self.mean, self.std_dev)
+        pdf_value = alterations_distribution.pdf(value) * 10
+        alteration = self.std_dev ** pdf_value
 
-        current_distance_from_mean = self.mean - value
-        alteration = self.std_dev ** (current_distance_from_mean / self.std_dev)
-
-        # Clamp the alteration between min_alteration and max_alteration
-        alteration = max(min(alteration, max_alteration), min_alteration)
+        alteration = max(min(alteration, self.max_alteration), self.min_alteration)
 
         altered_value = value + alteration if self.positive_weight else value - alteration
 
         if self.data_type == 'int64':
-            return int(altered_value)
+            return int(altered_value), int(alteration)
 
-        return altered_value
+        return altered_value, alteration
 
     def __str__(self):
         return '{}: {}'.format(self.display_name, self.model)

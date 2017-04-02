@@ -227,10 +227,12 @@ def generate_prediction(request):
     features_to_alter = ml_model.alterable_features()
     for feature in features_to_alter:
         altered_match_data = np.array(match_data[0]).reshape(1, -1)
-        altered_match_data[0][column_names.index(feature.name)] = feature.make_tactical_alteration(altered_match_data[0][column_names.index(feature.name)])
+        initial_value = altered_match_data[0][column_names.index(feature.name)]
+        altered_value, alteration = feature.make_tactical_alteration(initial_value)
+        altered_match_data[0][column_names.index(feature.name)] = altered_value
 
         win_probability = model.predict_proba(altered_match_data)[0][1]
-        tactical_advice.append(feature.generate_tactical_advice_card(win_probability, initial_prediction[1]))
+        tactical_advice.append(feature.generate_tactical_advice_card(win_probability, initial_prediction[1], alteration))
 
     tactical_advice.sort(key=lambda x: x['win_percentage_increase'], reverse=True)
 
