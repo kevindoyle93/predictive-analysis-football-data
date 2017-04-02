@@ -160,17 +160,18 @@ class DataFeature(models.Model):
         The magnitude of the alteration to a feature value must be viable. Tactical advice can only
         be suitable if the changes being suggested are actually achievable.
 
-        The maximum alteration is considered to be two standard deviations, and the min is one tenth of the mean. If
-        the max is calculated as less than 1 it will set as 2, and if the min is less than 1 it is set as 1.
+        The alteration is calculated based on the probability density function (pdf) for the current data feature.
+        The standard deviation is used as a base for achievable alterations and is transformed to an alteration value
+        by raising it to the power of the pdf of the value param. This ensures the highest alteration values occur
+        when the value param is closest to the mean, with alteration values getting lower as the value param moves
+        away from the mean.
 
-        The alteration is calculated as the standard deviation to the power of the number of standard deviations away
-        from the mean the value is. This means higher alterations for values significantly lower than the mean, and
-        lower alterations for values significantly higher than the mean.
-
-        TODO: Try using a sigmoid function to calculate the alteration.
+        This achieves the effect of providing more achievable alterations to teams performing poorly (i.e. a value
+        param significantly lower than the mean), and limiting the alterations for teams that are already performing
+        very well (i.e. a value param significantly higher than the mean).
 
         :param value: the value for this feature of the instance being altered
-        :return: the altered value for this feature
+        :return: the altered value for this feature, and the alteration made
         """
 
         alterations_distribution = norm(self.mean, self.std_dev)
