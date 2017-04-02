@@ -178,6 +178,7 @@ class DataFeature(models.Model):
         pdf_value = alterations_distribution.pdf(value) * 10
         alteration = self.std_dev ** pdf_value
 
+        # Clamp the alteration between the min and max
         alteration = max(min(alteration, self.max_alteration), self.min_alteration)
 
         altered_value = value + alteration if self.positive_weight else value - alteration
