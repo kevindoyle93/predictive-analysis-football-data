@@ -7,6 +7,7 @@ from django.db.models.signals import post_save
 from rest_framework.authtoken.models import Token
 from django_countries.fields import CountryField
 import pandas as pd
+from scipy.stats import norm
 
 from football_data.constants import MACHINE_LEARNING_ALGORITHM_CHOICES, MACHINE_LEARNING_ALGORITHMS
 
@@ -101,7 +102,6 @@ class DataFeature(models.Model):
     Column of an Analytics Base Table (ABT)
 
     Data features are automatically added when a model is trained.
-
     """
     DATA_TYPE_CHOICES = (
         ('bool', 'Boolean'),
@@ -130,12 +130,13 @@ class DataFeature(models.Model):
         elif self.data_type == 'int64':
             return int(value)
 
-    def generate_tactical_advice_card(self, value, initial_probability):
+    def generate_tactical_advice_card(self, value, initial_probability, alteration):
         win_percentage_increase = (value - initial_probability) * 100
 
-        title = '{} {}'.format(
+        title = '{} {} by {}'.format(
             'Increase' if self.positive_weight else 'Decrease',
-            self.display_name
+            self.display_name,
+            alteration
         )
 
         body = 'Increases probability of a win by {}% to {}%'.format(
@@ -172,21 +173,18 @@ class DataFeature(models.Model):
         :return: the altered value for this feature
         """
 
-        max_alteration = max(self.std_dev * 2, 2)
-        min_alteration = max(self.mean / 10, 1)
+        alterations_distribution = norm(self.mean, self.std_dev)
+        pdf_value = alterations_distribution.pdf(value) * 10
+        alteration = self.std_dev ** pdf_value
 
-        current_distance_from_mean = self.mean - value
-        alteration = self.std_dev ** (current_distance_from_mean / self.std_dev)
-
-        # Clamp the alteration between min_alteration and max_alteration
-        alteration = max(min(alteration, max_alteration), min_alteration)
+        alteration = max(min(alteration, self.max_alteration), self.min_alteration)
 
         altered_value = value + alteration if self.positive_weight else value - alteration
 
         if self.data_type == 'int64':
-            return int(altered_value)
+            return int(altered_value), int(alteration)
 
-        return altered_value
+        return altered_value, alteration
 
     def __str__(self):
         return '{}: {}'.format(self.display_name, self.model)
