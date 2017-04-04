@@ -1,10 +1,14 @@
+import pickle
+
 from django.db import models
 from django.core.cache import cache
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.dispatch import receiver
 from django.db.models.signals import post_save
+
 from rest_framework.authtoken.models import Token
+from picklefield.fields import PickledObjectField
 from django_countries.fields import CountryField
 import pandas as pd
 from scipy.stats import norm
@@ -18,6 +22,7 @@ class MachineLearningModel(models.Model):
     target_feature_name = models.CharField(max_length=60, help_text='The name of the target feature column as it '
                                                                     'appears in the training data')
     default = models.BooleanField(default=False, help_text='Is this the default model? (There can only be one)')
+    pickled_model = PickledObjectField(editable=False, null=True, blank=True)
 
     @property
     def model(self):
@@ -34,6 +39,12 @@ class MachineLearningModel(models.Model):
     @property
     def target_column(self):
         return self.features.get(is_target_feature=True).name
+
+    def get_predictive_model(self):
+        if cache.get(self.algorithm) is not None:
+            return cache.get(self.algorithm)
+        else:
+            return pickle.loads(self.trained_model.trained_model)
 
     def train(self):
         training_data = pd.read_csv(self.training_data.path, index_col=0)
@@ -91,10 +102,17 @@ class MachineLearningModel(models.Model):
 
     def save(self, *args, **kwargs):
         super(MachineLearningModel, self).save(*args, **kwargs)
-        cache.set(self.algorithm, self.train())
+        trained_model = self.train()
+        TrainedModels.objects.create(ml_algorithm=self, trained_model=pickle.dumps(trained_model))
+        cache.set(self.algorithm, trained_model)
 
     def __str__(self):
         return self.algorithm
+
+
+class TrainedModels(models.Model):
+    ml_algorithm = models.OneToOneField(MachineLearningModel, related_name='trained_model')
+    trained_model = PickledObjectField()
 
 
 class DataFeature(models.Model):
