@@ -71,7 +71,7 @@ class ViewTests(APITestCase):
         coach = Coach.objects.create(user=User.objects.create_user(username='coach', password='pass'))
         AppMatch.objects.create(coach=coach, home_team='home team', away_team='away team', **stats)
 
-        url = reverse('app-matches')
+        url = reverse('app-match-list')
 
         self.client.login(username='coach', password='pass')
         res = self.client.get(url)
@@ -92,7 +92,7 @@ class ViewTests(APITestCase):
 
         coach = Coach.objects.create(user=User.objects.create_user(username='coach', password='pass'))
 
-        url = reverse('app-matches')
+        url = reverse('app-match-list')
 
         self.client.login(username='coach', password='pass')
         res = self.client.post(url, stats)
