@@ -28,6 +28,11 @@ class UserSerializer(serializers.ModelSerializer):
         return user
 
 
+class TrainingDrillSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TrainingDrill
+
+
 class LeagueSerializer(serializers.ModelSerializer):
     class Meta:
         model = League

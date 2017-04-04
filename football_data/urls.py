@@ -39,4 +39,7 @@ urlpatterns = [
     url(r'^coaches/matches/(?P<pk>[0-9]+)/$',
         views.AppMatchDetail.as_view(),
         name='app-match-detail'),
+    url(r'^training_drills/(?P<pk>[0-9]+)/$',
+        views.TrainingDrillDetail.as_view(),
+        name='training-drill-detail'),
 ]

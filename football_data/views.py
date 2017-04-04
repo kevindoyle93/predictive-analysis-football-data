@@ -36,6 +36,11 @@ class CoachCreate(generics.CreateAPIView):
         serializer.save()
 
 
+class TrainingDrillDetail(generics.RetrieveAPIView):
+    queryset = TrainingDrill.objects.all()
+    serializer_class = TrainingDrillSerializer
+
+
 class LeagueList(generics.ListAPIView):
     queryset = League.objects.all()
     serializer_class = LeagueSerializer
