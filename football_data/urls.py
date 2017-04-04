@@ -35,5 +35,8 @@ urlpatterns = [
         name='coaches-create'),
     url(r'^coaches/matches/$',
         views.AppMatchList.as_view(),
-        name='app-matches'),
+        name='app-match-list'),
+    url(r'^coaches/matches/(?P<pk>[0-9]+)/$',
+        views.AppMatchDetail.as_view(),
+        name='app-match-detail'),
 ]

@@ -24,7 +24,7 @@ def api_root(request, format=None):  # pragma: no cover
         'teams': reverse('team-list', request=request, format=format),
         'matches': reverse('match-list', request=request, format=format),
         'coaches': reverse('coaches-create', request=request, format=format),
-        'app-matches': reverse('app-matches', request=request, format=format),
+        'app-matches': reverse('app-match-list', request=request, format=format),
     })
 
 
@@ -202,6 +202,16 @@ class AppMatchList(generics.ListCreateAPIView):
 
     def perform_create(self, serializer):
         serializer.save(coach=self.request.user.coach)
+
+
+class AppMatchDetail(generics.RetrieveDestroyAPIView):
+    serializer_class = AppMatchSerializer
+    authentication_classes = (TokenAuthentication, SessionAuthentication,)
+    permission_classes = (IsAuthenticated, IsCoach,)
+
+    def get_queryset(self):
+        coach = self.request.user.coach
+        return AppMatch.objects.filter(coach=coach)
 
 
 @csrf_exempt
