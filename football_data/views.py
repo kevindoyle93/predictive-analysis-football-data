@@ -219,7 +219,7 @@ def generate_prediction(request):
     match_data = np.array(match_data).reshape(1, -1)
 
     # Get predictive model from cache and make initial prediction
-    model = cache.get(ml_model.algorithm)
+    model = ml_model.get_predictive_model()
     initial_prediction = model.predict_proba(match_data)[0]
 
     # Get tactical advice from model
