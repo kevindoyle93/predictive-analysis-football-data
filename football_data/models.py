@@ -140,6 +140,8 @@ class DataFeature(models.Model):
     min_alteration = models.FloatField(default=0, help_text='The minimum achievable alteration for this feature')
     max_alteration = models.FloatField(default=0, help_text='The maximum achievable alteration for this feature')
 
+    message = models.TextField(blank=None, null=True, help_text='Why does improving this stat help a team?')
+
     def from_string(self, value):
         if self.data_type == 'bool':
             return bool(value)
@@ -162,11 +164,18 @@ class DataFeature(models.Model):
             format(value * 100, '.2f'),
         )
 
-        drills = [{'name': drill.name, 'description': drill.description} for drill in self.training_drills.all()]
+        detail = self.message
+
+        drills = [
+            {'id': drill.id, 'name': drill.name, 'description': drill.description, 'link': drill.link}
+            for drill in self.training_drills.all()
+        ]
 
         return {
             'title': title,
+            'feature': self.display_name,
             'body': body,
+            'detail': detail,
             'drills': drills,
             'win_percentage_increase': win_percentage_increase
         }
@@ -225,6 +234,7 @@ class TrainingDrill(models.Model):
 
     name = models.CharField(max_length=70)
     description = models.TextField()
+    link = models.URLField(null=True, blank=True)
     feature = models.ForeignKey(to=DataFeature, related_name='training_drills')
 
     def __str__(self):
